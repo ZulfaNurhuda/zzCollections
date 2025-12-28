@@ -2,20 +2,22 @@
 #include "memory.h"
 #include <stdlib.h>
 
-bool zzPriorityQueueInit(zzPriorityQueue *pq, size_t elSize, size_t capacity,
+zzOpResult zzPriorityQueueInit(zzPriorityQueue *pq, size_t elSize, size_t capacity,
                        zzCompareFn compareFn, zzFreeFn elemFree) {
-    if (!pq || elSize == 0 || !compareFn) return false;
+    if (!pq) return ZZ_ERR("PriorityQueue pointer is NULL");
+    if (elSize == 0) return ZZ_ERR("Element size cannot be zero");
+    if (!compareFn) return ZZ_ERR("Comparison function is NULL");
     if (capacity == 0) capacity = 16;
-    
+
     pq->buffer = malloc(elSize * capacity);
-    if (!pq->buffer) return false;
-    
+    if (!pq->buffer) return ZZ_ERR("Failed to allocate buffer memory");
+
     pq->elSize = elSize;
     pq->size = 0;
     pq->capacity = capacity;
     pq->compareFn = compareFn;
     pq->elemFree = elemFree;
-    return true;
+    return ZZ_OK();
 }
 
 void zzPriorityQueueFree(zzPriorityQueue *pq) {
@@ -32,13 +34,13 @@ void zzPriorityQueueFree(zzPriorityQueue *pq) {
     pq->size = 0;
 }
 
-static bool zzPriorityQueueResize(zzPriorityQueue *pq) {
+static zzOpResult zzPriorityQueueResize(zzPriorityQueue *pq) {
     size_t newCap = pq->capacity * 2;
     void *newBuf = realloc(pq->buffer, pq->elSize * newCap);
-    if (!newBuf) return false;
+    if (!newBuf) return ZZ_ERR("Failed to grow buffer (realloc failed)");
     pq->buffer = newBuf;
     pq->capacity = newCap;
-    return true;
+    return ZZ_OK();
 }
 
 static void heapifyUp(zzPriorityQueue *pq, size_t idx) {
@@ -94,38 +96,46 @@ static void heapifyDown(zzPriorityQueue *pq, size_t idx) {
     }
 }
 
-bool zzPriorityQueuePush(zzPriorityQueue *pq, const void *elem) {
-    if (!pq || !elem) return false;
-    if (pq->size == pq->capacity && !zzPriorityQueueResize(pq)) return false;
-    
+zzOpResult zzPriorityQueuePush(zzPriorityQueue *pq, const void *elem) {
+    if (!pq) return ZZ_ERR("PriorityQueue pointer is NULL");
+    if (!elem) return ZZ_ERR("Element pointer is NULL");
+
+    if (pq->size == pq->capacity) {
+        zzOpResult resizeResult = zzPriorityQueueResize(pq);
+        if (ZZ_IS_ERR(resizeResult)) return resizeResult;
+    }
+
     void *target = (char*)pq->buffer + pq->size * pq->elSize;
     zzMemoryCopy(target, elem, pq->elSize);
     heapifyUp(pq, pq->size);
     pq->size++;
-    return true;
+    return ZZ_OK();
 }
 
-bool zzPriorityQueuePop(zzPriorityQueue *pq, void *out) {
-    if (!pq || pq->size == 0) return false;
-    
-    if (out) {
-        zzMemoryCopy(out, pq->buffer, pq->elSize);
-    }
-    
+zzOpResult zzPriorityQueuePop(zzPriorityQueue *pq, void *out) {
+    if (!pq) return ZZ_ERR("PriorityQueue pointer is NULL");
+    if (!out) return ZZ_ERR("Output buffer is NULL");
+    if (pq->size == 0) return ZZ_ERR("Queue is empty");
+
+    zzMemoryCopy(out, pq->buffer, pq->elSize);
+
     pq->size--;
     if (pq->size > 0) {
         void *last = (char*)pq->buffer + pq->size * pq->elSize;
         zzMemoryCopy(pq->buffer, last, pq->elSize);
         heapifyDown(pq, 0);
     }
-    
-    return true;
+
+    return ZZ_OK();
 }
 
-bool zzPriorityQueuePeek(const zzPriorityQueue *pq, void *out) {
-    if (!pq || !out || pq->size == 0) return false;
+zzOpResult zzPriorityQueuePeek(const zzPriorityQueue *pq, void *out) {
+    if (!pq) return ZZ_ERR("PriorityQueue pointer is NULL");
+    if (!out) return ZZ_ERR("Output buffer is NULL");
+    if (pq->size == 0) return ZZ_ERR("Queue is empty");
+
     zzMemoryCopy(out, pq->buffer, pq->elSize);
-    return true;
+    return ZZ_OK();
 }
 
 void zzPriorityQueueClear(zzPriorityQueue *pq) {

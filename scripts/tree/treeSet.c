@@ -2,15 +2,17 @@
 #include "memory.h"
 #include <stdlib.h>
 
-bool zzTreeSetInit(zzTreeSet *ts, size_t keySize, zzCompareFn compareFn, zzFreeFn keyFree) {
-    if (!ts || keySize == 0 || !compareFn) return false;
-    
+zzOpResult zzTreeSetInit(zzTreeSet *ts, size_t keySize, zzCompareFn compareFn, zzFreeFn keyFree) {
+    if (!ts) return ZZ_ERR("TreeSet pointer is NULL");
+    if (keySize == 0) return ZZ_ERR("Key size cannot be zero");
+    if (!compareFn) return ZZ_ERR("Comparison function is NULL");
+
     ts->root = NULL;
     ts->keySize = keySize;
     ts->size = 0;
     ts->compareFn = compareFn;
     ts->keyFree = keyFree;
-    return true;
+    return ZZ_OK();
 }
 
 static void zzTreeSetFreeNode(zzTreeSet *ts, TreeSetNode *node) {
@@ -95,34 +97,35 @@ static void tsInsertFixup(zzTreeSet *ts, TreeSetNode *z) {
     ts->root->color = TS_BLACK;
 }
 
-bool zzTreeSetInsert(zzTreeSet *ts, const void *key) {
-    if (!ts || !key) return false;
-    
+zzOpResult zzTreeSetInsert(zzTreeSet *ts, const void *key) {
+    if (!ts) return ZZ_ERR("TreeSet pointer is NULL");
+    if (!key) return ZZ_ERR("Key pointer is NULL");
+
     TreeSetNode *parent = NULL;
     TreeSetNode *cur = ts->root;
-    
+
     while (cur) {
         parent = cur;
         int cmp = ts->compareFn(key, cur->key);
-        if (cmp == 0) return false;
+        if (cmp == 0) return ZZ_ERR("Key already exists");
         cur = (cmp < 0) ? cur->left : cur->right;
     }
-    
+
     TreeSetNode *node = malloc(sizeof(TreeSetNode) + ts->keySize);
-    if (!node) return false;
-    
+    if (!node) return ZZ_ERR("Failed to allocate node");
+
     zzMemoryCopy(node->key, key, ts->keySize);
     node->left = node->right = NULL;
     node->parent = parent;
     node->color = TS_RED;
-    
+
     if (!parent) ts->root = node;
     else if (ts->compareFn(key, parent->key) < 0) parent->left = node;
     else parent->right = node;
-    
+
     ts->size++;
     tsInsertFixup(ts, node);
-    return true;
+    return ZZ_OK();
 }
 
 bool zzTreeSetContains(const zzTreeSet *ts, const void *key) {
@@ -217,21 +220,22 @@ static void tsDeleteFixup(zzTreeSet *ts, TreeSetNode *x, TreeSetNode *xParent) {
     if (x) x->color = TS_BLACK;
 }
 
-bool zzTreeSetRemove(zzTreeSet *ts, const void *key) {
-    if (!ts || !key) return false;
-    
+zzOpResult zzTreeSetRemove(zzTreeSet *ts, const void *key) {
+    if (!ts) return ZZ_ERR("TreeSet pointer is NULL");
+    if (!key) return ZZ_ERR("Key pointer is NULL");
+
     TreeSetNode *z = ts->root;
     while (z) {
         int cmp = ts->compareFn(key, z->key);
         if (cmp == 0) break;
         z = (cmp < 0) ? z->left : z->right;
     }
-    if (!z) return false;
-    
+    if (!z) return ZZ_ERR("Key not found");
+
     TreeSetNode *y = z;
     TreeSetNode *x, *xParent;
     TSColor yOrigColor = y->color;
-    
+
     if (!z->left) {
         x = z->right;
         xParent = z->parent;
@@ -245,7 +249,7 @@ bool zzTreeSetRemove(zzTreeSet *ts, const void *key) {
         yOrigColor = y->color;
         x = y->right;
         xParent = y;
-        
+
         if (y->parent == z) {
             if (x) x->parent = y;
             xParent = y;
@@ -255,22 +259,22 @@ bool zzTreeSetRemove(zzTreeSet *ts, const void *key) {
             y->right = z->right;
             y->right->parent = y;
         }
-        
+
         tsTransplant(ts, z, y);
         y->left = z->left;
         y->left->parent = y;
         y->color = z->color;
     }
-    
+
     if (ts->keyFree) ts->keyFree(z->key);
     free(z);
     ts->size--;
-    
+
     if (yOrigColor == TS_BLACK) {
         tsDeleteFixup(ts, x, xParent);
     }
-    
-    return true;
+
+    return ZZ_OK();
 }
 
 void zzTreeSetClear(zzTreeSet *ts) {
@@ -280,16 +284,22 @@ void zzTreeSetClear(zzTreeSet *ts) {
     ts->size = 0;
 }
 
-bool zzTreeSetGetMin(const zzTreeSet *ts, void *keyOut) {
-    if (!ts || !ts->root || !keyOut) return false;
+zzOpResult zzTreeSetGetMin(const zzTreeSet *ts, void *keyOut) {
+    if (!ts) return ZZ_ERR("TreeSet pointer is NULL");
+    if (!keyOut) return ZZ_ERR("Key output pointer is NULL");
+    if (!ts->root) return ZZ_ERR("Set is empty");
+
     TreeSetNode *min = zzTreeSetMin(ts->root);
     zzMemoryCopy(keyOut, min->key, ts->keySize);
-    return true;
+    return ZZ_OK();
 }
 
-bool zzTreeSetGetMax(const zzTreeSet *ts, void *keyOut) {
-    if (!ts || !ts->root || !keyOut) return false;
+zzOpResult zzTreeSetGetMax(const zzTreeSet *ts, void *keyOut) {
+    if (!ts) return ZZ_ERR("TreeSet pointer is NULL");
+    if (!keyOut) return ZZ_ERR("Key output pointer is NULL");
+    if (!ts->root) return ZZ_ERR("Set is empty");
+
     TreeSetNode *max = zzTreeSetMax(ts->root);
     zzMemoryCopy(keyOut, max->key, ts->keySize);
-    return true;
+    return ZZ_OK();
 }

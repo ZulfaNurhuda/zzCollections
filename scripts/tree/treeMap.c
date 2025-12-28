@@ -5,10 +5,13 @@
 #define KEY_PTR(node) ((node)->data)
 #define VAL_PTR(node, keySize) ((node)->data + (keySize))
 
-bool zzTreeMapInit(zzTreeMap *tm, size_t keySize, size_t valueSize,
+zzOpResult zzTreeMapInit(zzTreeMap *tm, size_t keySize, size_t valueSize,
                  zzCompareFn compareFn, zzFreeFn keyFree, zzFreeFn valueFree) {
-    if (!tm || keySize == 0 || valueSize == 0 || !compareFn) return false;
-    
+    if (!tm) return ZZ_ERR("TreeMap pointer is NULL");
+    if (keySize == 0) return ZZ_ERR("Key size cannot be zero");
+    if (valueSize == 0) return ZZ_ERR("Value size cannot be zero");
+    if (!compareFn) return ZZ_ERR("Comparison function is NULL");
+
     tm->root = NULL;
     tm->keySize = keySize;
     tm->valueSize = valueSize;
@@ -16,7 +19,7 @@ bool zzTreeMapInit(zzTreeMap *tm, size_t keySize, size_t valueSize,
     tm->compareFn = compareFn;
     tm->keyFree = keyFree;
     tm->valueFree = valueFree;
-    return true;
+    return ZZ_OK();
 }
 
 static void zzTreeMapFreeNode(zzTreeMap *tm, TreeMapNode *node) {
@@ -102,54 +105,58 @@ static void insertFixup(zzTreeMap *tm, TreeMapNode *z) {
     tm->root->color = RB_BLACK;
 }
 
-bool zzTreeMapPut(zzTreeMap *tm, const void *key, const void *value) {
-    if (!tm || !key || !value) return false;
-    
+zzOpResult zzTreeMapPut(zzTreeMap *tm, const void *key, const void *value) {
+    if (!tm) return ZZ_ERR("TreeMap pointer is NULL");
+    if (!key) return ZZ_ERR("Key pointer is NULL");
+    if (!value) return ZZ_ERR("Value pointer is NULL");
+
     TreeMapNode *parent = NULL;
     TreeMapNode *cur = tm->root;
-    
+
     while (cur) {
         parent = cur;
         int cmp = tm->compareFn(key, KEY_PTR(cur));
         if (cmp == 0) {
             if (tm->valueFree) tm->valueFree(VAL_PTR(cur, tm->keySize));
             zzMemoryCopy(VAL_PTR(cur, tm->keySize), value, tm->valueSize);
-            return true;
+            return ZZ_OK();
         }
         cur = (cmp < 0) ? cur->left : cur->right;
     }
-    
+
     TreeMapNode *node = malloc(sizeof(TreeMapNode) + tm->keySize + tm->valueSize);
-    if (!node) return false;
-    
+    if (!node) return ZZ_ERR("Failed to allocate node");
+
     zzMemoryCopy(KEY_PTR(node), key, tm->keySize);
     zzMemoryCopy(VAL_PTR(node, tm->keySize), value, tm->valueSize);
     node->left = node->right = NULL;
     node->parent = parent;
     node->color = RB_RED;
-    
+
     if (!parent) tm->root = node;
     else if (tm->compareFn(key, KEY_PTR(parent)) < 0) parent->left = node;
     else parent->right = node;
-    
+
     tm->size++;
     insertFixup(tm, node);
-    return true;
+    return ZZ_OK();
 }
 
-bool zzTreeMapGet(const zzTreeMap *tm, const void *key, void *valueOut) {
-    if (!tm || !key || !valueOut) return false;
-    
+zzOpResult zzTreeMapGet(const zzTreeMap *tm, const void *key, void *valueOut) {
+    if (!tm) return ZZ_ERR("TreeMap pointer is NULL");
+    if (!key) return ZZ_ERR("Key pointer is NULL");
+    if (!valueOut) return ZZ_ERR("Value output pointer is NULL");
+
     TreeMapNode *cur = tm->root;
     while (cur) {
         int cmp = tm->compareFn(key, KEY_PTR(cur));
         if (cmp == 0) {
             zzMemoryCopy(valueOut, VAL_PTR(cur, tm->keySize), tm->valueSize);
-            return true;
+            return ZZ_OK();
         }
         cur = (cmp < 0) ? cur->left : cur->right;
     }
-    return false;
+    return ZZ_ERR("Key not found");
 }
 
 bool zzTreeMapContains(const zzTreeMap *tm, const void *key) {
@@ -244,21 +251,22 @@ static void deleteFixup(zzTreeMap *tm, TreeMapNode *x, TreeMapNode *xParent) {
     if (x) x->color = RB_BLACK;
 }
 
-bool zzTreeMapRemove(zzTreeMap *tm, const void *key) {
-    if (!tm || !key) return false;
-    
+zzOpResult zzTreeMapRemove(zzTreeMap *tm, const void *key) {
+    if (!tm) return ZZ_ERR("TreeMap pointer is NULL");
+    if (!key) return ZZ_ERR("Key pointer is NULL");
+
     TreeMapNode *z = tm->root;
     while (z) {
         int cmp = tm->compareFn(key, KEY_PTR(z));
         if (cmp == 0) break;
         z = (cmp < 0) ? z->left : z->right;
     }
-    if (!z) return false;
-    
+    if (!z) return ZZ_ERR("Key not found");
+
     TreeMapNode *y = z;
     TreeMapNode *x, *xParent;
     RBColor yOrigColor = y->color;
-    
+
     if (!z->left) {
         x = z->right;
         xParent = z->parent;
@@ -272,7 +280,7 @@ bool zzTreeMapRemove(zzTreeMap *tm, const void *key) {
         yOrigColor = y->color;
         x = y->right;
         xParent = y;
-        
+
         if (y->parent == z) {
             if (x) x->parent = y;
             xParent = y;
@@ -282,23 +290,23 @@ bool zzTreeMapRemove(zzTreeMap *tm, const void *key) {
             y->right = z->right;
             y->right->parent = y;
         }
-        
+
         transplant(tm, z, y);
         y->left = z->left;
         y->left->parent = y;
         y->color = z->color;
     }
-    
+
     if (tm->keyFree) tm->keyFree(KEY_PTR(z));
     if (tm->valueFree) tm->valueFree(VAL_PTR(z, tm->keySize));
     free(z);
     tm->size--;
-    
+
     if (yOrigColor == RB_BLACK) {
         deleteFixup(tm, x, xParent);
     }
-    
-    return true;
+
+    return ZZ_OK();
 }
 
 void zzTreeMapClear(zzTreeMap *tm) {
@@ -308,18 +316,22 @@ void zzTreeMapClear(zzTreeMap *tm) {
     tm->size = 0;
 }
 
-bool zzTreeMapGetMin(const zzTreeMap *tm, void *keyOut, void *valueOut) {
-    if (!tm || !tm->root) return false;
+zzOpResult zzTreeMapGetMin(const zzTreeMap *tm, void *keyOut, void *valueOut) {
+    if (!tm) return ZZ_ERR("TreeMap pointer is NULL");
+    if (!tm->root) return ZZ_ERR("Tree is empty");
+
     TreeMapNode *min = zzTreeMapMin(tm->root);
     if (keyOut) zzMemoryCopy(keyOut, KEY_PTR(min), tm->keySize);
     if (valueOut) zzMemoryCopy(valueOut, VAL_PTR(min, tm->keySize), tm->valueSize);
-    return true;
+    return ZZ_OK();
 }
 
-bool zzTreeMapGetMax(const zzTreeMap *tm, void *keyOut, void *valueOut) {
-    if (!tm || !tm->root) return false;
+zzOpResult zzTreeMapGetMax(const zzTreeMap *tm, void *keyOut, void *valueOut) {
+    if (!tm) return ZZ_ERR("TreeMap pointer is NULL");
+    if (!tm->root) return ZZ_ERR("Tree is empty");
+
     TreeMapNode *max = zzTreeMapMax(tm->root);
     if (keyOut) zzMemoryCopy(keyOut, KEY_PTR(max), tm->keySize);
     if (valueOut) zzMemoryCopy(valueOut, VAL_PTR(max, tm->keySize), tm->valueSize);
-    return true;
+    return ZZ_OK();
 }

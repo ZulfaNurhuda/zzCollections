@@ -5,34 +5,66 @@
 
 typedef zzArrayDeque zzArrayStack;
 
-static inline bool zzArrayStackInit(zzArrayStack *s, size_t elSize, size_t capacity, zzFreeFn elemFree) {
+/**
+ * @brief Initialize ArrayStack
+ * @see zzArrayDequeInit for detailed documentation
+ */
+static inline zzOpResult zzArrayStackInit(zzArrayStack *s, size_t elSize, size_t capacity, zzFreeFn elemFree) {
     return zzArrayDequeInit(s, elSize, capacity, elemFree);
 }
 
+/**
+ * @brief Free ArrayStack
+ * @see zzArrayDequeFree for detailed documentation
+ */
 static inline void zzArrayStackFree(zzArrayStack *s) {
     zzArrayDequeFree(s);
 }
 
-static inline bool zzArrayStackPush(zzArrayStack *s, const void *elem) {
+/**
+ * @brief Push element onto stack (LIFO)
+ * @see zzArrayDequePushBack for detailed documentation
+ */
+static inline zzOpResult zzArrayStackPush(zzArrayStack *s, const void *elem) {
     return zzArrayDequePushBack(s, elem);
 }
 
-static inline bool zzArrayStackPop(zzArrayStack *s, void *out) {
+/**
+ * @brief Pop element from stack
+ * @see zzArrayDequePopBack for detailed documentation
+ */
+static inline zzOpResult zzArrayStackPop(zzArrayStack *s, void *out) {
     return zzArrayDequePopBack(s, out);
 }
 
-static inline bool zzArrayStackPeek(const zzArrayStack *s, void *out) {
+/**
+ * @brief Peek at top element without removing
+ * @see zzArrayDequePeekBack for detailed documentation
+ */
+static inline zzOpResult zzArrayStackPeek(const zzArrayStack *s, void *out) {
     return zzArrayDequePeekBack(s, out);
 }
 
+/**
+ * @brief Check if stack is empty
+ * @return true if empty, false otherwise
+ */
 static inline bool zzArrayStackIsEmpty(const zzArrayStack *s) {
     return s->size == 0;
 }
 
+/**
+ * @brief Get stack size
+ * @return Number of elements in stack
+ */
 static inline size_t zzArrayStackSize(const zzArrayStack *s) {
     return s->size;
 }
 
+/**
+ * @brief Clear all elements from stack
+ * @see zzArrayDequeClear for detailed documentation
+ */
 static inline void zzArrayStackClear(zzArrayStack *s) {
     zzArrayDequeClear(s);
 }

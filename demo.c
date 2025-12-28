@@ -137,7 +137,7 @@ int main() {
         zzHashMapPut(&hm, &(int){3}, &(int){300});
         
         int value;
-        if (zzHashMapGet(&hm, &(int){2}, &value)) {
+        if (ZZ_IS_OK(zzHashMapGet(&hm, &(int){2}, &value))) {
             printf("Key 2 -> Value %d\n", value);
         }
         
@@ -158,22 +158,22 @@ int main() {
     printf("═══════════════════════════════════════════\n");
     {
         zzHashSet hs;
-        setInit(&hs, sizeof(int), 8, zzIntHash, zzIntEquals, NULL);
-        
+        zzHashSetInit(&hs, sizeof(int), 8, zzIntHash, zzIntEquals, NULL);
+
         int nums[] = {5, 3, 8, 3, 1, 5, 9};
         for (int i = 0; i < 7; i++) {
-            if (setInsert(&hs, &nums[i])) {
+            if (ZZ_IS_OK(zzHashSetInsert(&hs, &nums[i]))) {
                 printf("Added: %d\n", nums[i]);
             } else {
                 printf("Duplicate: %d\n", nums[i]);
             }
         }
-        
+
         printf("Size: %zu (unique elements)\n", hs.size);
-        printf("Contains 3? %s\n", setContains(&hs, &(int){3}) ? "Yes" : "No");
-        printf("Contains 99? %s\n", setContains(&hs, &(int){99}) ? "Yes" : "No");
-        
-        setFree(&hs);
+        printf("Contains 3? %s\n", zzHashSetContains(&hs, &(int){3}) ? "Yes" : "No");
+        printf("Contains 99? %s\n", zzHashSetContains(&hs, &(int){99}) ? "Yes" : "No");
+
+        zzHashSetFree(&hs);
     }
     
     printf("\n═══════════════════════════════════════════\n");
@@ -190,15 +190,15 @@ int main() {
         
         int k, v;
         printf("Insertion order maintained:\n");
-        if (zzLinkedHashMapGetFirst(&lhm, &k, &v)) {
+        if (ZZ_IS_OK(zzLinkedHashMapGetFirst(&lhm, &k, &v))) {
             printf("First: %d -> %d\n", k, v);
         }
-        if (zzLinkedHashMapGetLast(&lhm, &k, &v)) {
+        if (ZZ_IS_OK(zzLinkedHashMapGetLast(&lhm, &k, &v))) {
             printf("Last: %d -> %d\n", k, v);
         }
-        
+
         int val;
-        if (zzLinkedHashMapGet(&lhm, &(int){3}, &val)) {
+        if (ZZ_IS_OK(zzLinkedHashMapGet(&lhm, &(int){3}, &val))) {
             printf("Key 3 -> Value %d\n", val);
         }
         
@@ -217,17 +217,17 @@ int main() {
         int nums[] = {5, 3, 8, 3, 1, 5, 9};
         printf("Insertion order: ");
         for (int i = 0; i < 7; i++) {
-            if (zzLinkedHashSetInsert(&lhs, &nums[i])) {
+            if (ZZ_IS_OK(zzLinkedHashSetInsert(&lhs, &nums[i]))) {
                 printf("%d ", nums[i]);
             }
         }
         printf("\n");
-        
+
         int first, last;
-        if (zzLinkedHashSetGetFirst(&lhs, &first)) {
+        if (ZZ_IS_OK(zzLinkedHashSetGetFirst(&lhs, &first))) {
             printf("First: %d\n", first);
         }
-        if (zzLinkedHashSetGetLast(&lhs, &last)) {
+        if (ZZ_IS_OK(zzLinkedHashSetGetLast(&lhs, &last))) {
             printf("Last: %d\n", last);
         }
         
@@ -250,15 +250,15 @@ int main() {
         zzTreeMapPut(&tm, &(int){9}, &(int){90});
         
         int k, v;
-        if (zzTreeMapGetMin(&tm, &k, &v)) {
+        if (ZZ_IS_OK(zzTreeMapGetMin(&tm, &k, &v))) {
             printf("Min: %d -> %d\n", k, v);
         }
-        if (zzTreeMapGetMax(&tm, &k, &v)) {
+        if (ZZ_IS_OK(zzTreeMapGetMax(&tm, &k, &v))) {
             printf("Max: %d -> %d\n", k, v);
         }
-        
+
         int val;
-        if (zzTreeMapGet(&tm, &(int){3}, &val)) {
+        if (ZZ_IS_OK(zzTreeMapGet(&tm, &(int){3}, &val))) {
             printf("Key 3 -> Value %d\n", val);
         }
         
@@ -278,19 +278,19 @@ int main() {
         int nums[] = {5, 3, 8, 3, 1, 5, 9, 2, 7};
         printf("Inserting: ");
         for (int i = 0; i < 9; i++) {
-            if (zzTreeSetInsert(&ts, &nums[i])) {
+            if (ZZ_IS_OK(zzTreeSetInsert(&ts, &nums[i]))) {
                 printf("%d ", nums[i]);
             } else {
                 printf("(%d) ", nums[i]);
             }
         }
         printf("\n");
-        
+
         int min, max;
-        if (zzTreeSetGetMin(&ts, &min)) {
+        if (ZZ_IS_OK(zzTreeSetGetMin(&ts, &min))) {
             printf("Min: %d\n", min);
         }
-        if (zzTreeSetGetMax(&ts, &max)) {
+        if (ZZ_IS_OK(zzTreeSetGetMax(&ts, &max))) {
             printf("Max: %d\n", max);
         }
         
@@ -316,7 +316,7 @@ int main() {
         }
         
         int top;
-        if (zzArrayStackPeek(&stack, &top)) {
+        if (ZZ_IS_OK(zzArrayStackPeek(&stack, &top))) {
             printf("Top: %d\n", top);
         }
         
@@ -343,7 +343,7 @@ int main() {
         }
         
         int front;
-        if (zzArrayQueuePeek(&queue, &front)) {
+        if (ZZ_IS_OK(zzArrayQueuePeek(&queue, &front))) {
             printf("Front: %d\n", front);
         }
         
@@ -370,7 +370,7 @@ int main() {
         }
         
         int top;
-        if (zzLinkedStackPeek(&stack, &top)) {
+        if (ZZ_IS_OK(zzLinkedStackPeek(&stack, &top))) {
             printf("Top: %d\n", top);
         }
         
@@ -397,7 +397,7 @@ int main() {
         }
         
         int front;
-        if (zzLinkedQueuePeek(&queue, &front)) {
+        if (ZZ_IS_OK(zzLinkedQueuePeek(&queue, &front))) {
             printf("Front: %d\n", front);
         }
         
@@ -428,7 +428,7 @@ int main() {
         printf("\n");
         
         int min;
-        if (zzPriorityQueuePeek(&pq, &min)) {
+        if (ZZ_IS_OK(zzPriorityQueuePeek(&pq, &min))) {
             printf("Min (peek): %d\n", min);
         }
         
@@ -466,8 +466,8 @@ int main() {
         printf("\n");
         
         int front, back;
-        if (zzCircularBufferPeekFront(&cb, &front) && 
-            zzCircularBufferPeekBack(&cb, &back)) {
+        if (ZZ_IS_OK(zzCircularBufferPeekFront(&cb, &front)) &&
+            ZZ_IS_OK(zzCircularBufferPeekBack(&cb, &back))) {
             printf("Front: %d, Back: %d\n", front, back);
         }
         

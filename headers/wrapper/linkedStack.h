@@ -6,36 +6,80 @@
 
 typedef zzLinkedList zzLinkedStack;
 
-static inline bool zzLinkedStackInit(zzLinkedStack *s, size_t elSize, zzFreeFn elemFree) {
+/**
+ * @brief Initialize LinkedStack
+ * @see zzLinkedListInit for detailed documentation
+ */
+static inline zzOpResult zzLinkedStackInit(zzLinkedStack *s, size_t elSize, zzFreeFn elemFree) {
     return zzLinkedListInit(s, elSize, elemFree);
 }
 
+/**
+ * @brief Free LinkedStack
+ * @see zzLinkedListFree for detailed documentation
+ */
 static inline void zzLinkedStackFree(zzLinkedStack *s) {
     zzLinkedListFree(s);
 }
 
-static inline bool zzLinkedStackPush(zzLinkedStack *s, const void *elem) {
+/**
+ * @brief Push element onto stack (LIFO)
+ * @see zzLinkedListPushBack for detailed documentation
+ */
+static inline zzOpResult zzLinkedStackPush(zzLinkedStack *s, const void *elem) {
     return zzLinkedListPushBack(s, elem);
 }
 
-static inline bool zzLinkedStackPop(zzLinkedStack *s, void *out) {
+/**
+ * @brief Pop element from stack
+ * @see zzLinkedListPopBack for detailed documentation
+ */
+static inline zzOpResult zzLinkedStackPop(zzLinkedStack *s, void *out) {
     return zzLinkedListPopBack(s, out);
 }
 
-static inline bool zzLinkedStackPeek(const zzLinkedStack *s, void *out) {
-    if (!s || !out || !s->tail) return false;
+/**
+ * @brief Peek at top element without removing
+ *
+ * @param[in] s Pointer to LinkedStack
+ * @param[out] out Buffer where element will be copied
+ *
+ * @return zzOpResult with status:
+ *         - SUCCESS: Element peeked successfully
+ *         - ERROR: Possible errors:
+ *           * "LinkedList pointer is NULL"
+ *           * "Output buffer is NULL"
+ *           * "List is empty"
+ */
+static inline zzOpResult zzLinkedStackPeek(const zzLinkedStack *s, void *out) {
+    if (!s) return ZZ_ERR("LinkedList pointer is NULL");
+    if (!out) return ZZ_ERR("Output buffer is NULL");
+    if (!s->tail) return ZZ_ERR("List is empty");
+
     zzMemoryCopy(out, s->tail->data, s->elSize);
-    return true;
+    return ZZ_OK();
 }
 
+/**
+ * @brief Check if stack is empty
+ * @return true if empty, false otherwise
+ */
 static inline bool zzLinkedStackIsEmpty(const zzLinkedStack *s) {
     return s->size == 0;
 }
 
+/**
+ * @brief Get stack size
+ * @return Number of elements in stack
+ */
 static inline size_t zzLinkedStackSize(const zzLinkedStack *s) {
     return s->size;
 }
 
+/**
+ * @brief Clear all elements from stack
+ * @see zzLinkedListClear for detailed documentation
+ */
 static inline void zzLinkedStackClear(zzLinkedStack *s) {
     zzLinkedListClear(s);
 }

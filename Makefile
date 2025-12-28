@@ -6,8 +6,8 @@ rwildcard=$(foreach d,$(wildcard $(1:=/*)),$(call rwildcard,$d,$2) $(filter $(su
 HEADER_DIRS := $(sort $(dir $(call rwildcard,headers,*.h)))
 INCLUDES := $(addprefix -I,$(HEADER_DIRS))
 
-CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -O2 -g $(INCLUDES)
-TARGET = demo.exe
+CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -O2 -g -pipe $(INCLUDES)
+TARGET = collection_demo
 BUILD_DIR = build
 
 # Dynamically find all source files in scripts/ and demo.c
@@ -28,7 +28,7 @@ $(BUILD_DIR):
 
 $(TARGET): $(OBJS)
 	@echo "🔗 Linking $(TARGET)..."
-	@$(CC) $(CFLAGS) -o $@ $^
+	@TMP=$(BUILD_DIR) TEMP=$(BUILD_DIR) $(CC) $(CFLAGS) -o $@ $^
 	@echo "✓ Build successful! Executable: $(TARGET)"
 
 # Generic pattern rule for compiling object files
@@ -41,10 +41,14 @@ demo: $(TARGET)
 	@echo "Running demo..."
 	@./$(TARGET)
 
+checkmem: $(TARGET)
+	@echo "Running memory check with Valgrind..."
+	@valgrind --leak-check=full --show-leak-kinds=all ./$(TARGET)
+
 clean:
 	rm -rf $(BUILD_DIR) $(TARGET)
 	@echo "✓ Cleaned!"
 
 rebuild: clean all
 
-.PHONY: all demo clean rebuild
+.PHONY: all demo checkmem clean rebuild

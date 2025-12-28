@@ -2,14 +2,16 @@
 #include "memory.h"
 #include <stdlib.h>
 
-bool zzHashMapInit(zzHashMap *hm, size_t keySize, size_t valueSize, size_t capacity,
+zzOpResult zzHashMapInit(zzHashMap *hm, size_t keySize, size_t valueSize, size_t capacity,
                  zzHashFn hashFn, zzEqualsFn equalsFn, zzFreeFn keyFree, zzFreeFn valueFree) {
-    if (!hm || keySize == 0 || valueSize == 0) return false;
+    if (!hm) return ZZ_ERR("HashMap pointer is NULL");
+    if (keySize == 0) return ZZ_ERR("Key size cannot be zero");
+    if (valueSize == 0) return ZZ_ERR("Value size cannot be zero");
     if (capacity == 0) capacity = 16;
-    
+
     hm->buckets = calloc(capacity, sizeof(MapNode*));
-    if (!hm->buckets) return false;
-    
+    if (!hm->buckets) return ZZ_ERR("Failed to allocate buckets");
+
     hm->keySize = keySize;
     hm->valueSize = valueSize;
     hm->capacity = capacity;
@@ -19,12 +21,12 @@ bool zzHashMapInit(zzHashMap *hm, size_t keySize, size_t valueSize, size_t capac
     hm->equalsFn = equalsFn ? equalsFn : zzDefaultEquals;
     hm->keyFree = keyFree;
     hm->valueFree = valueFree;
-    return true;
+    return ZZ_OK();
 }
 
 void zzHashMapFree(zzHashMap *hm) {
     if (!hm || !hm->buckets) return;
-    
+
     for (size_t i = 0; i < hm->capacity; i++) {
         MapNode *cur = hm->buckets[i];
         while (cur) {
@@ -40,11 +42,11 @@ void zzHashMapFree(zzHashMap *hm) {
     hm->size = 0;
 }
 
-static bool zzHashMapRehash(zzHashMap *hm) {
+static zzOpResult zzHashMapRehash(zzHashMap *hm) {
     size_t newCap = hm->capacity * 2;
     MapNode **newBuckets = calloc(newCap, sizeof(MapNode*));
-    if (!newBuckets) return false;
-    
+    if (!newBuckets) return ZZ_ERR("Failed to rehash (out of memory)");
+
     for (size_t i = 0; i < hm->capacity; i++) {
         MapNode *cur = hm->buckets[i];
         while (cur) {
@@ -55,69 +57,74 @@ static bool zzHashMapRehash(zzHashMap *hm) {
             cur = next;
         }
     }
-    
+
     free(hm->buckets);
     hm->buckets = newBuckets;
     hm->capacity = newCap;
-    return true;
+    return ZZ_OK();
 }
 
-bool zzHashMapPut(zzHashMap *hm, const void *key, const void *value) {
-    if (!hm || !key || !value) return false;
-    
+zzOpResult zzHashMapPut(zzHashMap *hm, const void *key, const void *value) {
+    if (!hm) return ZZ_ERR("HashMap pointer is NULL");
+    if (!key) return ZZ_ERR("Key pointer is NULL");
+    if (!value) return ZZ_ERR("Value pointer is NULL");
+
     uint32_t hash = hm->hashFn(key);
     size_t idx = hash % hm->capacity;
-    
+
     MapNode *cur = hm->buckets[idx];
     while (cur) {
         if (cur->hash == hash && hm->equalsFn(cur->data, key)) {
             if (hm->valueFree) hm->valueFree(cur->data + hm->keySize);
             zzMemoryCopy(cur->data + hm->keySize, value, hm->valueSize);
-            return true;
+            return ZZ_OK();
         }
         cur = cur->next;
     }
-    
+
     MapNode *node = malloc(sizeof(MapNode) + hm->keySize + hm->valueSize);
-    if (!node) return false;
-    
+    if (!node) return ZZ_ERR("Failed to allocate node");
+
     node->hash = hash;
     zzMemoryCopy(node->data, key, hm->keySize);
     zzMemoryCopy(node->data + hm->keySize, value, hm->valueSize);
     node->next = hm->buckets[idx];
     hm->buckets[idx] = node;
     hm->size++;
-    
+
     if ((float)hm->size / hm->capacity > hm->loadFactor) {
-        zzHashMapRehash(hm);
+        zzOpResult rehashResult = zzHashMapRehash(hm);
+        if (ZZ_IS_ERR(rehashResult)) return rehashResult;
     }
-    
-    return true;
+
+    return ZZ_OK();
 }
 
-bool zzHashMapGet(const zzHashMap *hm, const void *key, void *valueOut) {
-    if (!hm || !key || !valueOut) return false;
-    
+zzOpResult zzHashMapGet(const zzHashMap *hm, const void *key, void *valueOut) {
+    if (!hm) return ZZ_ERR("HashMap pointer is NULL");
+    if (!key) return ZZ_ERR("Key pointer is NULL");
+    if (!valueOut) return ZZ_ERR("Value output pointer is NULL");
+
     uint32_t hash = hm->hashFn(key);
     size_t idx = hash % hm->capacity;
-    
+
     MapNode *cur = hm->buckets[idx];
     while (cur) {
         if (cur->hash == hash && hm->equalsFn(cur->data, key)) {
             zzMemoryCopy(valueOut, cur->data + hm->keySize, hm->valueSize);
-            return true;
+            return ZZ_OK();
         }
         cur = cur->next;
     }
-    return false;
+    return ZZ_ERR("Key not found");
 }
 
 bool zzHashMapContains(const zzHashMap *hm, const void *key) {
     if (!hm || !key) return false;
-    
+
     uint32_t hash = hm->hashFn(key);
     size_t idx = hash % hm->capacity;
-    
+
     MapNode *cur = hm->buckets[idx];
     while (cur) {
         if (cur->hash == hash && hm->equalsFn(cur->data, key))
@@ -127,12 +134,13 @@ bool zzHashMapContains(const zzHashMap *hm, const void *key) {
     return false;
 }
 
-bool zzHashMapRemove(zzHashMap *hm, const void *key) {
-    if (!hm || !key) return false;
-    
+zzOpResult zzHashMapRemove(zzHashMap *hm, const void *key) {
+    if (!hm) return ZZ_ERR("HashMap pointer is NULL");
+    if (!key) return ZZ_ERR("Key pointer is NULL");
+
     uint32_t hash = hm->hashFn(key);
     size_t idx = hash % hm->capacity;
-    
+
     MapNode **cur = &hm->buckets[idx];
     while (*cur) {
         MapNode *node = *cur;
@@ -142,16 +150,16 @@ bool zzHashMapRemove(zzHashMap *hm, const void *key) {
             if (hm->valueFree) hm->valueFree(node->data + hm->keySize);
             free(node);
             hm->size--;
-            return true;
+            return ZZ_OK();
         }
         cur = &node->next;
     }
-    return false;
+    return ZZ_ERR("Key not found");
 }
 
 void zzHashMapClear(zzHashMap *hm) {
     if (!hm) return;
-    
+
     for (size_t i = 0; i < hm->capacity; i++) {
         MapNode *cur = hm->buckets[i];
         while (cur) {
