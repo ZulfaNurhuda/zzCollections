@@ -29,9 +29,9 @@ int main() {
     printf("\n");
     printf("╔═══════════════════════════════════════════════════╗\n");
     printf("║                                                   ║\n");
-    printf("║       🚀 zzCollections Library Demo 🚀            ║\n");
+    printf("║         🚀 zzCollections Library Demo 🚀          ║\n");
     printf("║                                                   ║\n");
-    printf("║   15 Production-Ready Data Structures in C11     ║\n");
+    printf("║   15 Production-Ready Data Structures in C11      ║\n");
     printf("║                                                   ║\n");
     printf("╚═══════════════════════════════════════════════════╝\n");
     printSeparator();
@@ -506,9 +506,9 @@ int main() {
     
     printf("╔═══════════════════════════════════════════════════╗\n");
     printf("║                                                   ║\n");
-    printf("║        ✨ All 15 Collections Tested! ✨           ║\n");
+    printf("║          ✨ All 15 Collections Tested! ✨         ║\n");
     printf("║                                                   ║\n");
-    printf("║  🎉 Zero memory leaks • Production ready 🎉      ║\n");
+    printf("║    🎉 Zero memory leaks • Production ready 🎉     ║\n");
     printf("║                                                   ║\n");
     printf("╚═══════════════════════════════════════════════════╝\n\n");
     
