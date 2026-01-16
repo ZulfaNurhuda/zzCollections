@@ -16,10 +16,7 @@
 #include "linkedQueue.h"
 #include "priorityQueue.h"
 #include "circularBuffer.h"
-
-int intCmp(const void *a, const void *b) {
-    return *(int*)a - *(int*)b;
-}
+#include "utils.h"
 
 void printSeparator() {
     printf("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
@@ -266,15 +263,15 @@ int main() {
     printf("   Complexity: O(log n) for all operations\n\n");
     {
         zzTreeMap tm;
-        zzTreeMapInit(&tm, sizeof(int), sizeof(int), intCmp, NULL, NULL);
-        
+        zzTreeMapInit(&tm, sizeof(int), sizeof(int), zzIntCompare, NULL, NULL);
+
         printf("   → Inserting unsorted: 5→50, 3→30, 8→80, 1→10, 9→90\n");
         zzTreeMapPut(&tm, &(int){5}, &(int){50});
         zzTreeMapPut(&tm, &(int){3}, &(int){30});
         zzTreeMapPut(&tm, &(int){8}, &(int){80});
         zzTreeMapPut(&tm, &(int){1}, &(int){10});
         zzTreeMapPut(&tm, &(int){9}, &(int){90});
-        
+
         int k, v;
         zzTreeMapGetMin(&tm, &k, &v);
         printf("   ✓ Min key: %d → %d\n", k, v);
@@ -285,7 +282,7 @@ int main() {
         zzTreeMapGet(&tm, &(int){3}, &val);
         printf("   → Lookup key 3 → %d\n", val);
         printf("   💡 Tip: Red-Black tree keeps everything balanced!\n");
-        
+
         zzTreeMapFree(&tm);
     }
     printSeparator();
@@ -296,7 +293,7 @@ int main() {
     printf("   Complexity: O(log n) for all operations\n\n");
     {
         zzTreeSet ts;
-        zzTreeSetInit(&ts, sizeof(int), intCmp, NULL);
+        zzTreeSetInit(&ts, sizeof(int), zzIntCompare, NULL);
         
         printf("   → Inserting: 5, 3, 8, 3, 1, 5, 9, 2, 7\n");
         int nums[] = {5, 3, 8, 3, 1, 5, 9, 2, 7};
@@ -446,18 +443,18 @@ int main() {
     printf("   Complexity: O(log n) push/pop, O(1) peek\n\n");
     {
         zzPriorityQueue pq;
-        zzPriorityQueueInit(&pq, sizeof(int), 8, intCmp, NULL);
-        
+        zzPriorityQueueInit(&pq, sizeof(int), 8, zzIntCompare, NULL);
+
         printf("   → Pushing unsorted: 5, 3, 8, 1, 9, 2, 7\n");
         int nums[] = {5, 3, 8, 1, 9, 2, 7};
         for (int i = 0; i < 7; i++) {
             zzPriorityQueuePush(&pq, &nums[i]);
         }
-        
+
         int min;
         zzPriorityQueuePeek(&pq, &min);
         printf("   ✓ Min element (peek): %d\n\n", min);
-        
+
         printf("   → Popping (auto-sorted): ");
         while (pq.size > 0) {
             int val;
@@ -465,7 +462,7 @@ int main() {
             printf("%d ", val);
         }
         printf("\n   💡 Tip: Always get the minimum element first!\n");
-        
+
         zzPriorityQueueFree(&pq);
     }
     printSeparator();

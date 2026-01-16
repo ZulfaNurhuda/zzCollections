@@ -2,8 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-zzOpResult zzLinkedHashSetInit(zzLinkedHashSet *lhs, size_t keySize, size_t capacity,
-                       zzHashFn hashFn, zzEqualsFn equalsFn, zzFreeFn keyFree) {
+zzOpResult zzLinkedHashSetInit(zzLinkedHashSet *lhs, size_t keySize, size_t capacity, zzHashFn hashFn, zzEqualsFn equalsFn, zzFreeFn keyFree) {
     if (!lhs) return ZZ_ERR("LinkedHashSet pointer is NULL");
     if (keySize == 0) return ZZ_ERR("Key size cannot be zero");
     if (capacity == 0) capacity = 16;

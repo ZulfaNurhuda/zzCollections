@@ -2,8 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-zzOpResult zzPriorityQueueInit(zzPriorityQueue *pq, size_t elSize, size_t capacity,
-                       zzCompareFn compareFn, zzFreeFn elemFree) {
+zzOpResult zzPriorityQueueInit(zzPriorityQueue *pq, size_t elSize, size_t capacity, zzCompareFn compareFn, zzFreeFn elemFree) {
     if (!pq) return ZZ_ERR("PriorityQueue pointer is NULL");
     if (elSize == 0) return ZZ_ERR("Element size cannot be zero");
     if (!compareFn) return ZZ_ERR("Comparison function is NULL");

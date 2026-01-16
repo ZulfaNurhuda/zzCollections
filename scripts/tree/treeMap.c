@@ -232,17 +232,17 @@ static void deleteFixup(zzTreeMap *tm, TreeMapNode *x, TreeMapNode *xParent) {
                 x = xParent;
                 xParent = x ? x->parent : NULL;
             } else {
-                if (w && (!w->left || w->left->color == RB_BLACK)) {
-                    if (w->right) w->right->color = RB_BLACK;
-                    w->color = RB_RED;
+                if (w && (!w->left || w->left->color == TS_BLACK)) {
+                    if (w->right) w->right->color = TS_BLACK;
+                    w->color = TS_RED;
                     rotateLeft(tm, w);
                     w = xParent->left;
                 }
                 if (w) {
                     w->color = xParent->color;
-                    if (w->left) w->left->color = RB_BLACK;
+                    if (w->left) w->left->color = TS_BLACK;
                 }
-                xParent->color = RB_BLACK;
+                xParent->color = TS_BLACK;
                 rotateRight(tm, xParent);
                 x = tm->root;
             }

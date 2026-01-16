@@ -2,8 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-zzOpResult zzLinkedHashMapInit(zzLinkedHashMap *lhm, size_t keySize, size_t valueSize, size_t capacity,
-                       zzHashFn hashFn, zzEqualsFn equalsFn, zzFreeFn keyFree, zzFreeFn valueFree) {
+zzOpResult zzLinkedHashMapInit(zzLinkedHashMap *lhm, size_t keySize, size_t valueSize, size_t capacity, zzHashFn hashFn, zzEqualsFn equalsFn, zzFreeFn keyFree, zzFreeFn valueFree) {
     if (!lhm) return ZZ_ERR("LinkedHashMap pointer is NULL");
     if (keySize == 0) return ZZ_ERR("Key size cannot be zero");
     if (valueSize == 0) return ZZ_ERR("Value size cannot be zero");
