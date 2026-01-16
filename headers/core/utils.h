@@ -1,6 +1,8 @@
 #ifndef ZZ_UTILS_H
 #define ZZ_UTILS_H
 
+#include "types.h"
+
 uint32_t zzDefaultHash(const void *key);
 
 bool zzDefaultEquals(const void *a, const void *b);

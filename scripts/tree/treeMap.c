@@ -5,8 +5,7 @@
 #define KEY_PTR(node) ((node)->data)
 #define VAL_PTR(node, keySize) ((node)->data + (keySize))
 
-zzOpResult zzTreeMapInit(zzTreeMap *tm, size_t keySize, size_t valueSize,
-                 zzCompareFn compareFn, zzFreeFn keyFree, zzFreeFn valueFree) {
+zzOpResult zzTreeMapInit(zzTreeMap *tm, size_t keySize, size_t valueSize, zzCompareFn compareFn, zzFreeFn keyFree, zzFreeFn valueFree) {
     if (!tm) return ZZ_ERR("TreeMap pointer is NULL");
     if (keySize == 0) return ZZ_ERR("Key size cannot be zero");
     if (valueSize == 0) return ZZ_ERR("Value size cannot be zero");
@@ -232,17 +231,17 @@ static void deleteFixup(zzTreeMap *tm, TreeMapNode *x, TreeMapNode *xParent) {
                 x = xParent;
                 xParent = x ? x->parent : NULL;
             } else {
-                if (w && (!w->left || w->left->color == TS_BLACK)) {
-                    if (w->right) w->right->color = TS_BLACK;
-                    w->color = TS_RED;
+                if (w && (!w->left || w->left->color == RB_BLACK)) {
+                    if (w->right) w->right->color = RB_BLACK;
+                    w->color = RB_RED;
                     rotateLeft(tm, w);
                     w = xParent->left;
                 }
                 if (w) {
                     w->color = xParent->color;
-                    if (w->left) w->left->color = TS_BLACK;
+                    if (w->left) w->left->color = RB_BLACK;
                 }
-                xParent->color = TS_BLACK;
+                xParent->color = RB_BLACK;
                 rotateRight(tm, xParent);
                 x = tm->root;
             }
