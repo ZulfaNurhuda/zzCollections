@@ -1,5 +1,5 @@
 #include "circularBuffer.h"
-#include "memory.h"
+#include <string.h>
 #include <stdlib.h>
 
 zzOpResult zzCircularBufferInit(zzCircularBuffer *cb, size_t elSize, size_t capacity, zzFreeFn elemFree) {
@@ -46,7 +46,7 @@ zzOpResult zzCircularBufferPush(zzCircularBuffer *cb, const void *elem) {
         cb->size++;
     }
 
-    zzMemoryCopy(target, elem, cb->elSize);
+    memcpy(target, elem, cb->elSize);
     cb->tail = (cb->tail + 1) % cb->capacity;
     return ZZ_OK();
 }
@@ -57,7 +57,7 @@ zzOpResult zzCircularBufferPop(zzCircularBuffer *cb, void *out) {
     if (cb->size == 0) return ZZ_ERR("Buffer is empty");
 
     void *elem = (char*)cb->buffer + cb->head * cb->elSize;
-    zzMemoryCopy(out, elem, cb->elSize);
+    memcpy(out, elem, cb->elSize);
 
     cb->head = (cb->head + 1) % cb->capacity;
     cb->size--;
@@ -70,7 +70,7 @@ zzOpResult zzCircularBufferGet(const zzCircularBuffer *cb, size_t idx, void *out
     if (idx >= cb->size) return ZZ_ERR("Index out of bounds");
 
     size_t realIdx = (cb->head + idx) % cb->capacity;
-    zzMemoryCopy(out, (char*)cb->buffer + realIdx * cb->elSize, cb->elSize);
+    memcpy(out, (char*)cb->buffer + realIdx * cb->elSize, cb->elSize);
     return ZZ_OK();
 }
 
@@ -79,7 +79,7 @@ zzOpResult zzCircularBufferPeekFront(const zzCircularBuffer *cb, void *out) {
     if (!out) return ZZ_ERR("Output buffer is NULL");
     if (cb->size == 0) return ZZ_ERR("Buffer is empty");
 
-    zzMemoryCopy(out, (char*)cb->buffer + cb->head * cb->elSize, cb->elSize);
+    memcpy(out, (char*)cb->buffer + cb->head * cb->elSize, cb->elSize);
     return ZZ_OK();
 }
 
@@ -89,7 +89,7 @@ zzOpResult zzCircularBufferPeekBack(const zzCircularBuffer *cb, void *out) {
     if (cb->size == 0) return ZZ_ERR("Buffer is empty");
 
     size_t idx = (cb->tail + cb->capacity - 1) % cb->capacity;
-    zzMemoryCopy(out, (char*)cb->buffer + idx * cb->elSize, cb->elSize);
+    memcpy(out, (char*)cb->buffer + idx * cb->elSize, cb->elSize);
     return ZZ_OK();
 }
 

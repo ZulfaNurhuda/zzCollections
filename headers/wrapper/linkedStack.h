@@ -1,8 +1,16 @@
+/**
+ * @file linkedStack.h
+ * @brief LIFO stack wrapper around LinkedList
+ *
+ * Provides stack semantics (push/pop) using LinkedList as underlying storage.
+ * All operations have O(1) time complexity.
+ */
+
 #ifndef LINKED_STACK_H
 #define LINKED_STACK_H
 
 #include "linkedList.h"
-#include "memory.h"
+#include <string.h>
 
 typedef zzLinkedList zzLinkedStack;
 
@@ -56,7 +64,7 @@ static inline zzOpResult zzLinkedStackPeek(const zzLinkedStack *s, void *out) {
     if (!out) return ZZ_ERR("Output buffer is NULL");
     if (!s->tail) return ZZ_ERR("List is empty");
 
-    zzMemoryCopy(out, s->tail->data, s->elSize);
+    memcpy(out, s->tail->data, s->elSize);
     return ZZ_OK();
 }
 

@@ -1,7 +1,16 @@
+/**
+ * @file circularBuffer.h
+ * @brief Fixed-size ring buffer with overwrite semantics
+ *
+ * CircularBuffer provides O(1) operations with automatic overwrite when full.
+ * Perfect for streaming data and fixed-size buffers.
+ */
+
 #ifndef CIRCULAR_BUFFER_H
 #define CIRCULAR_BUFFER_H
 
-#include "common.h"
+#include "types.h"
+#include "utils.h"
 #include "result.h"
 
 /**

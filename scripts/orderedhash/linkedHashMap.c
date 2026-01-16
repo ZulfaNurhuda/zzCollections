@@ -1,5 +1,5 @@
 #include "linkedHashMap.h"
-#include "memory.h"
+#include <string.h>
 #include <stdlib.h>
 
 zzOpResult zzLinkedHashMapInit(zzLinkedHashMap *lhm, size_t keySize, size_t valueSize, size_t capacity,
@@ -74,7 +74,7 @@ zzOpResult zzLinkedHashMapPut(zzLinkedHashMap *lhm, const void *key, const void 
     while (cur) {
         if (cur->hash == hash && lhm->equalsFn(cur->data, key)) {
             if (lhm->valueFree) lhm->valueFree(cur->data + lhm->keySize);
-            zzMemoryCopy(cur->data + lhm->keySize, value, lhm->valueSize);
+            memcpy(cur->data + lhm->keySize, value, lhm->valueSize);
             return ZZ_OK();
         }
         cur = cur->hashNext;
@@ -84,8 +84,8 @@ zzOpResult zzLinkedHashMapPut(zzLinkedHashMap *lhm, const void *key, const void 
     if (!node) return ZZ_ERR("Failed to allocate node");
 
     node->hash = hash;
-    zzMemoryCopy(node->data, key, lhm->keySize);
-    zzMemoryCopy(node->data + lhm->keySize, value, lhm->valueSize);
+    memcpy(node->data, key, lhm->keySize);
+    memcpy(node->data + lhm->keySize, value, lhm->valueSize);
 
     node->hashNext = lhm->buckets[idx];
     lhm->buckets[idx] = node;
@@ -117,7 +117,7 @@ zzOpResult zzLinkedHashMapGet(const zzLinkedHashMap *lhm, const void *key, void 
     LHMapNode *cur = lhm->buckets[idx];
     while (cur) {
         if (cur->hash == hash && lhm->equalsFn(cur->data, key)) {
-            zzMemoryCopy(valueOut, cur->data + lhm->keySize, lhm->valueSize);
+            memcpy(valueOut, cur->data + lhm->keySize, lhm->valueSize);
             return ZZ_OK();
         }
         cur = cur->hashNext;
@@ -194,8 +194,8 @@ zzOpResult zzLinkedHashMapGetFirst(const zzLinkedHashMap *lhm, void *keyOut, voi
     if (!lhm) return ZZ_ERR("LinkedHashMap pointer is NULL");
     if (!lhm->head) return ZZ_ERR("Map is empty");
 
-    if (keyOut) zzMemoryCopy(keyOut, lhm->head->data, lhm->keySize);
-    if (valueOut) zzMemoryCopy(valueOut, lhm->head->data + lhm->keySize, lhm->valueSize);
+    if (keyOut) memcpy(keyOut, lhm->head->data, lhm->keySize);
+    if (valueOut) memcpy(valueOut, lhm->head->data + lhm->keySize, lhm->valueSize);
     return ZZ_OK();
 }
 
@@ -203,7 +203,7 @@ zzOpResult zzLinkedHashMapGetLast(const zzLinkedHashMap *lhm, void *keyOut, void
     if (!lhm) return ZZ_ERR("LinkedHashMap pointer is NULL");
     if (!lhm->tail) return ZZ_ERR("Map is empty");
 
-    if (keyOut) zzMemoryCopy(keyOut, lhm->tail->data, lhm->keySize);
-    if (valueOut) zzMemoryCopy(valueOut, lhm->tail->data + lhm->keySize, lhm->valueSize);
+    if (keyOut) memcpy(keyOut, lhm->tail->data, lhm->keySize);
+    if (valueOut) memcpy(valueOut, lhm->tail->data + lhm->keySize, lhm->valueSize);
     return ZZ_OK();
 }

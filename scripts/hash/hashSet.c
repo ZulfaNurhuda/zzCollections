@@ -1,5 +1,5 @@
 #include "hashSet.h"
-#include "memory.h"
+#include <string.h>
 #include <stdlib.h>
 
 zzOpResult zzHashSetInit(zzHashSet *s, size_t keySize, size_t capacity,
@@ -78,7 +78,7 @@ zzOpResult zzHashSetInsert(zzHashSet *s, const void *key) {
     if (!node) return ZZ_ERR("Failed to allocate node");
 
     node->hash = hash;
-    zzMemoryCopy(node->key, key, s->keySize);
+    memcpy(node->key, key, s->keySize);
     node->next = s->buckets[idx];
     s->buckets[idx] = node;
     s->size++;

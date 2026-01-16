@@ -1,7 +1,16 @@
+/**
+ * @file arrayDeque.h
+ * @brief Double-ended queue using circular buffer
+ *
+ * ArrayDeque provides O(1) operations at both ends using a circular buffer.
+ * Automatically grows when capacity is reached.
+ */
+
 #ifndef ARRAY_DEQUE_H
 #define ARRAY_DEQUE_H
 
-#include "common.h"
+#include "types.h"
+#include "utils.h"
 #include "result.h"
 
 /**

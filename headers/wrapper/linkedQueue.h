@@ -1,8 +1,16 @@
+/**
+ * @file linkedQueue.h
+ * @brief FIFO queue wrapper around LinkedList
+ *
+ * Provides queue semantics (enqueue/dequeue) using LinkedList as underlying storage.
+ * All operations have O(1) time complexity.
+ */
+
 #ifndef LINKED_QUEUE_H
 #define LINKED_QUEUE_H
 
 #include "linkedList.h"
-#include "memory.h"
+#include <string.h>
 
 typedef zzLinkedList zzLinkedQueue;
 
@@ -56,7 +64,7 @@ static inline zzOpResult zzLinkedQueuePeek(const zzLinkedQueue *q, void *out) {
     if (!out) return ZZ_ERR("Output buffer is NULL");
     if (!q->head) return ZZ_ERR("List is empty");
 
-    zzMemoryCopy(out, q->head->data, q->elSize);
+    memcpy(out, q->head->data, q->elSize);
     return ZZ_OK();
 }
 

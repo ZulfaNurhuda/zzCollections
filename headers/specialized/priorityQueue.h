@@ -1,7 +1,16 @@
+/**
+ * @file priorityQueue.h
+ * @brief Min-heap priority queue implementation
+ *
+ * PriorityQueue provides O(log n) push/pop operations with O(1) peek.
+ * Always returns the minimum element according to comparison function.
+ */
+
 #ifndef PRIORITY_QUEUE_H
 #define PRIORITY_QUEUE_H
 
-#include "common.h"
+#include "types.h"
+#include "utils.h"
 #include "result.h"
 
 /**

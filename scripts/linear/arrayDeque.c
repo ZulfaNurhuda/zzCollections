@@ -1,5 +1,5 @@
 #include "arrayDeque.h"
-#include "memory.h"
+#include <string.h>
 #include <stdlib.h>
 
 zzOpResult zzArrayDequeInit(zzArrayDeque *ad, size_t elSize, size_t capacity, zzFreeFn elemFree) {
@@ -38,7 +38,7 @@ static zzOpResult zzArrayDequeResize(zzArrayDeque *ad, size_t newCap) {
 
     for (size_t i = 0; i < ad->size; i++) {
         size_t oldIdx = (ad->front + i) % ad->capacity;
-        zzMemoryCopy((char*)newBuf + i * ad->elSize,
+        memcpy((char*)newBuf + i * ad->elSize,
                      (char*)ad->buffer + oldIdx * ad->elSize,
                      ad->elSize);
     }
@@ -60,7 +60,7 @@ zzOpResult zzArrayDequePushFront(zzArrayDeque *ad, const void *elem) {
     }
 
     ad->front = (ad->front + ad->capacity - 1) % ad->capacity;
-    zzMemoryCopy((char*)ad->buffer + ad->front * ad->elSize, elem, ad->elSize);
+    memcpy((char*)ad->buffer + ad->front * ad->elSize, elem, ad->elSize);
     ad->size++;
     return ZZ_OK();
 }
@@ -75,7 +75,7 @@ zzOpResult zzArrayDequePushBack(zzArrayDeque *ad, const void *elem) {
     }
 
     size_t idx = (ad->front + ad->size) % ad->capacity;
-    zzMemoryCopy((char*)ad->buffer + idx * ad->elSize, elem, ad->elSize);
+    memcpy((char*)ad->buffer + idx * ad->elSize, elem, ad->elSize);
     ad->size++;
     return ZZ_OK();
 }
@@ -86,7 +86,7 @@ zzOpResult zzArrayDequePopFront(zzArrayDeque *ad, void *out) {
     if (ad->size == 0) return ZZ_ERR("Deque is empty");
 
     void *elem = (char*)ad->buffer + ad->front * ad->elSize;
-    zzMemoryCopy(out, elem, ad->elSize);
+    memcpy(out, elem, ad->elSize);
 
     ad->front = (ad->front + 1) % ad->capacity;
     ad->size--;
@@ -100,7 +100,7 @@ zzOpResult zzArrayDequePopBack(zzArrayDeque *ad, void *out) {
 
     size_t idx = (ad->front + ad->size - 1) % ad->capacity;
     void *elem = (char*)ad->buffer + idx * ad->elSize;
-    zzMemoryCopy(out, elem, ad->elSize);
+    memcpy(out, elem, ad->elSize);
 
     ad->size--;
     return ZZ_OK();
@@ -111,7 +111,7 @@ zzOpResult zzArrayDequePeekFront(const zzArrayDeque *ad, void *out) {
     if (!out) return ZZ_ERR("Output buffer is NULL");
     if (ad->size == 0) return ZZ_ERR("Deque is empty");
 
-    zzMemoryCopy(out, (char*)ad->buffer + ad->front * ad->elSize, ad->elSize);
+    memcpy(out, (char*)ad->buffer + ad->front * ad->elSize, ad->elSize);
     return ZZ_OK();
 }
 
@@ -121,7 +121,7 @@ zzOpResult zzArrayDequePeekBack(const zzArrayDeque *ad, void *out) {
     if (ad->size == 0) return ZZ_ERR("Deque is empty");
 
     size_t idx = (ad->front + ad->size - 1) % ad->capacity;
-    zzMemoryCopy(out, (char*)ad->buffer + idx * ad->elSize, ad->elSize);
+    memcpy(out, (char*)ad->buffer + idx * ad->elSize, ad->elSize);
     return ZZ_OK();
 }
 
@@ -131,7 +131,7 @@ zzOpResult zzArrayDequeGet(const zzArrayDeque *ad, size_t idx, void *out) {
     if (idx >= ad->size) return ZZ_ERR("Index out of bounds");
 
     size_t realIdx = (ad->front + idx) % ad->capacity;
-    zzMemoryCopy(out, (char*)ad->buffer + realIdx * ad->elSize, ad->elSize);
+    memcpy(out, (char*)ad->buffer + realIdx * ad->elSize, ad->elSize);
     return ZZ_OK();
 }
 

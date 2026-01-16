@@ -1,7 +1,16 @@
+/**
+ * @file arrayList.h
+ * @brief Dynamic array with automatic resizing
+ *
+ * ArrayList provides O(1) random access and amortized O(1) append operations.
+ * Automatically grows when capacity is reached.
+ */
+
 #ifndef ARRAY_LIST_H
 #define ARRAY_LIST_H
 
-#include "common.h"
+#include "types.h"
+#include "utils.h"
 #include "result.h"
 
 /**

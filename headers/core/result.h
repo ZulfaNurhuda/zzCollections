@@ -1,118 +1,52 @@
-#ifndef RESULT_H
-#define RESULT_H
-
-#include <stdlib.h>
-
-/* =========================================================
- * Result Status
- * ========================================================= */
-typedef enum ResultStatus {
-    RESULT_SUCCESS = 0,
-    RESULT_ERROR   = 1
-} ResultStatus;
-
-/* =========================================================
- * Result Type (Tagged Union)
- * ========================================================= */
-typedef struct Result {
-    ResultStatus status;
-    union {
-        void *data;        /* valid if status == RESULT_SUCCESS */
-        const char *err;   /* valid if status == RESULT_ERROR   */
-    } payload;
-} Result;
-
-/* =========================================================
- * SETTERS
- * ========================================================= */
-
-#define RESULT_SET_OK(ptr) \
-    ((Result){ .status = RESULT_SUCCESS, .payload.data = (ptr) })
-
-#define RESULT_SET_ERR(msg) \
-    ((Result){ .status = RESULT_ERROR, .payload.err = (msg) })
-
-/* =========================================================
- * STATUS CHECK
- * ========================================================= */
-
-#define RESULT_IS_OK(res) \
-    ((res).status == RESULT_SUCCESS)
-
-#define RESULT_IS_ERR(res) \
-    ((res).status == RESULT_ERROR)
-
-/* =========================================================
- * GETTERS
- * (Caller MUST check status first)
- * ========================================================= */
-
-#define RESULT_GET_DATA(res) \
-    ((res).payload.data)
-
-#define RESULT_GET_ERR(res) \
-    ((res).payload.err)
-
-/* =========================================================
- * MEMORY MANAGEMENT
- * ========================================================= */
-
-/*
- * Free ONLY the success data.
- * Does NOT change result status.
+/**
+ * @file result.h
+ * @brief Simple result type for operation status and error handling
  *
- * WARNING:
- * - payload.data MUST be heap-allocated
- * - ownership must belong to caller
+ * Provides a lightweight result type for functions that need to indicate
+ * success or failure with an optional error message. Used throughout the
+ * zzCollections library for consistent error handling.
  */
-#define RESULT_FREE_DATA(res)                      \
-    do {                                           \
-        if ((res).status == RESULT_SUCCESS &&      \
-            (res).payload.data != NULL) {          \
-            free((res).payload.data);              \
-            (res).payload.data = NULL;             \
-        }                                          \
-    } while (0)
+
+#ifndef ZZ_RESULT_H
+#define ZZ_RESULT_H
 
 /* =========================================================
- * LIFECYCLE / STATE MANAGEMENT
- * ========================================================= */
-
-/*
- * Reset result to error state.
- * Useful after freeing data or before reuse.
- */
-#define RESULT_RESET(res)                          \
-    do {                                           \
-        (res).status = RESULT_ERROR;               \
-        (res).payload.err = "result reset";        \
-    } while (0)
-
-/* =========================================================
- * OPERATION RESULT TYPE (For Collections Library)
+ * Result Status Enumeration
  * ========================================================= */
 
 /**
- * @brief Result type for operations that don't return data
- *
- * Used for Init, Add, Remove, and other operations in the collections
- * library that only need to indicate success or failure with an error message.
+ * @brief Status codes for operation results
  */
-typedef struct zzOpResult {
-    ResultStatus status;   /**< SUCCESS or ERROR */
-    const char *error;     /**< Error message if status == RESULT_ERROR, NULL otherwise */
+typedef enum {
+    ZZ_SUCCESS = 0,  /**< Operation completed successfully */
+    ZZ_ERROR   = 1   /**< Operation failed with error */
+} zzResultStatus;
+
+/* =========================================================
+ * Operation Result Type
+ * ========================================================= */
+
+/**
+ * @brief Result type for operations in the collections library
+ *
+ * Used for Init, Add, Remove, and other operations that only need to
+ * indicate success or failure with an error message.
+ */
+typedef struct {
+    zzResultStatus status;  /**< Operation status (SUCCESS or ERROR) */
+    const char *error;      /**< Error message if status == ERROR, NULL otherwise */
 } zzOpResult;
 
 /* =========================================================
- * OPERATION RESULT MACROS
+ * Result Creation Macros
  * ========================================================= */
 
 /**
  * @brief Create a successful operation result
- * @return zzOpResult with SUCCESS status
+ * @return zzOpResult with SUCCESS status and NULL error
  */
 #define ZZ_OK() \
-    ((zzOpResult){ .status = RESULT_SUCCESS, .error = NULL })
+    ((zzOpResult){ .status = ZZ_SUCCESS, .error = NULL })
 
 /**
  * @brief Create an error operation result
@@ -120,7 +54,11 @@ typedef struct zzOpResult {
  * @return zzOpResult with ERROR status and error message
  */
 #define ZZ_ERR(msg) \
-    ((zzOpResult){ .status = RESULT_ERROR, .error = (msg) })
+    ((zzOpResult){ .status = ZZ_ERROR, .error = (msg) })
+
+/* =========================================================
+ * Status Check Macros
+ * ========================================================= */
 
 /**
  * @brief Check if operation result is successful
@@ -128,7 +66,7 @@ typedef struct zzOpResult {
  * @return true if status is SUCCESS, false otherwise
  */
 #define ZZ_IS_OK(res) \
-    ((res).status == RESULT_SUCCESS)
+    ((res).status == ZZ_SUCCESS)
 
 /**
  * @brief Check if operation result is an error
@@ -136,7 +74,11 @@ typedef struct zzOpResult {
  * @return true if status is ERROR, false otherwise
  */
 #define ZZ_IS_ERR(res) \
-    ((res).status == RESULT_ERROR)
+    ((res).status == ZZ_ERROR)
+
+/* =========================================================
+ * Error Message Getter
+ * ========================================================= */
 
 /**
  * @brief Get error message from operation result
@@ -146,4 +88,4 @@ typedef struct zzOpResult {
 #define ZZ_GET_ERR(res) \
     ((res).error)
 
-#endif /* RESULT_H */
+#endif /* ZZ_RESULT_H */

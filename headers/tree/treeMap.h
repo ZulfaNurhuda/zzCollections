@@ -1,7 +1,16 @@
+/**
+ * @file treeMap.h
+ * @brief Sorted key-value map using Red-Black tree
+ *
+ * TreeMap provides O(log n) operations with keys kept in sorted order.
+ * Self-balancing binary search tree implementation.
+ */
+
 #ifndef TREE_MAP_H
 #define TREE_MAP_H
 
-#include "common.h"
+#include "types.h"
+#include "utils.h"
 #include "result.h"
 
 typedef enum { RB_RED, RB_BLACK } RBColor;

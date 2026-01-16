@@ -1,5 +1,5 @@
 #include "arrayList.h"
-#include "memory.h"
+#include <string.h>
 #include <stdlib.h>
 
 zzOpResult zzArrayListInit(zzArrayList *al, size_t elSize, size_t capacity, zzFreeFn elemFree) {
@@ -51,7 +51,7 @@ zzOpResult zzArrayListAdd(zzArrayList *al, const void *elem) {
         }
     }
 
-    zzMemoryCopy((char*)al->buffer + al->size * al->elSize, elem, al->elSize);
+    memcpy((char*)al->buffer + al->size * al->elSize, elem, al->elSize);
     al->size++;
     return ZZ_OK();
 }
@@ -61,7 +61,7 @@ zzOpResult zzArrayListGet(const zzArrayList *al, size_t idx, void *out) {
     if (!out) return ZZ_ERR("Output buffer is NULL");
     if (idx >= al->size) return ZZ_ERR("Index out of bounds");
 
-    zzMemoryCopy(out, (char*)al->buffer + idx * al->elSize, al->elSize);
+    memcpy(out, (char*)al->buffer + idx * al->elSize, al->elSize);
     return ZZ_OK();
 }
 
@@ -74,7 +74,7 @@ zzOpResult zzArrayListSet(zzArrayList *al, size_t idx, const void *elem) {
     if (al->elemFree) {
         al->elemFree(target);
     }
-    zzMemoryCopy(target, elem, al->elSize);
+    memcpy(target, elem, al->elSize);
     return ZZ_OK();
 }
 
@@ -87,9 +87,9 @@ zzOpResult zzArrayListRemove(zzArrayList *al, size_t idx) {
         al->elemFree(target);
     }
 
-    // Shift elements left
+    // Shift elements left (overlapping memory, use memmove)
     if (idx < al->size - 1) {
-        zzMemoryCopy(target, (char*)target + al->elSize,
+        memmove(target, (char*)target + al->elSize,
                      (al->size - idx - 1) * al->elSize);
     }
     al->size--;
@@ -120,14 +120,14 @@ zzOpResult zzArrayListInsert(zzArrayList *al, size_t idx, const void *elem) {
         }
     }
 
-    // Shift elements right
+    // Shift elements right (overlapping memory, use memmove)
     if (idx < al->size) {
         void *src = (char*)al->buffer + idx * al->elSize;
         void *dst = (char*)src + al->elSize;
-        zzMemoryCopy(dst, src, (al->size - idx) * al->elSize);
+        memmove(dst, src, (al->size - idx) * al->elSize);
     }
 
-    zzMemoryCopy((char*)al->buffer + idx * al->elSize, elem, al->elSize);
+    memcpy((char*)al->buffer + idx * al->elSize, elem, al->elSize);
     al->size++;
     return ZZ_OK();
 }

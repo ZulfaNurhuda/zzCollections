@@ -1,3 +1,11 @@
+/**
+ * @file types.h
+ * @brief Core type definitions and callback function types
+ *
+ * Defines all callback function types used throughout the zzCollections library
+ * including free, compare, hash, equals, and forEach functions.
+ */
+
 #ifndef ZZ_TYPES_H
 #define ZZ_TYPES_H
 

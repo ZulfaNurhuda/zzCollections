@@ -1,7 +1,18 @@
+/**
+ * @file linkedHashMap.h
+ * @brief LinkedHashMap - Hash table with insertion order preservation
+ *
+ * Provides a hash table that maintains the insertion order of entries through
+ * a doubly-linked list. Combines O(1) hash table performance with ordered
+ * iteration capabilities. Entries can be accessed by key in O(1) time and
+ * iterated in insertion order.
+ */
+
 #ifndef LINKED_HASH_MAP_H
 #define LINKED_HASH_MAP_H
 
-#include "common.h"
+#include "types.h"
+#include "utils.h"
 #include "result.h"
 
 typedef struct LHMapNode {

@@ -1,7 +1,16 @@
+/**
+ * @file treeSet.h
+ * @brief Sorted unique keys using Red-Black tree
+ *
+ * TreeSet provides O(log n) operations with keys kept in sorted order.
+ * Self-balancing binary search tree for unique elements.
+ */
+
 #ifndef TREE_SET_H
 #define TREE_SET_H
 
-#include "common.h"
+#include "types.h"
+#include "utils.h"
 #include "result.h"
 
 typedef enum { TS_RED, TS_BLACK } TSColor;

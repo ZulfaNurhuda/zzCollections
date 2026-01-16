@@ -1,5 +1,5 @@
 #include "linkedList.h"
-#include "memory.h"
+#include <string.h>
 #include <stdlib.h>
 
 zzOpResult zzLinkedListInit(zzLinkedList *ll, size_t elSize, zzFreeFn elemFree) {
@@ -35,7 +35,7 @@ zzOpResult zzLinkedListPushFront(zzLinkedList *ll, const void *elem) {
     DLNode *n = malloc(sizeof(DLNode) + ll->elSize);
     if (!n) return ZZ_ERR("Failed to allocate node");
 
-    zzMemoryCopy(n->data, elem, ll->elSize);
+    memcpy(n->data, elem, ll->elSize);
     n->prev = NULL;
     n->next = ll->head;
 
@@ -54,7 +54,7 @@ zzOpResult zzLinkedListPushBack(zzLinkedList *ll, const void *elem) {
     DLNode *n = malloc(sizeof(DLNode) + ll->elSize);
     if (!n) return ZZ_ERR("Failed to allocate node");
 
-    zzMemoryCopy(n->data, elem, ll->elSize);
+    memcpy(n->data, elem, ll->elSize);
     n->prev = ll->tail;
     n->next = NULL;
 
@@ -72,7 +72,7 @@ zzOpResult zzLinkedListPopFront(zzLinkedList *ll, void *out) {
     if (!ll->head) return ZZ_ERR("List is empty");
 
     DLNode *tmp = ll->head;
-    zzMemoryCopy(out, tmp->data, ll->elSize);
+    memcpy(out, tmp->data, ll->elSize);
 
     ll->head = ll->head->next;
     if (ll->head) ll->head->prev = NULL;
@@ -89,7 +89,7 @@ zzOpResult zzLinkedListPopBack(zzLinkedList *ll, void *out) {
     if (!ll->tail) return ZZ_ERR("List is empty");
 
     DLNode *tmp = ll->tail;
-    zzMemoryCopy(out, tmp->data, ll->elSize);
+    memcpy(out, tmp->data, ll->elSize);
 
     ll->tail = ll->tail->prev;
     if (ll->tail) ll->tail->next = NULL;
@@ -114,7 +114,7 @@ zzOpResult zzLinkedListGet(const zzLinkedList *ll, size_t idx, void *out) {
         for (size_t i = ll->size - 1; i > idx; i--) cur = cur->prev;
     }
 
-    zzMemoryCopy(out, cur->data, ll->elSize);
+    memcpy(out, cur->data, ll->elSize);
     return ZZ_OK();
 }
 
@@ -127,7 +127,7 @@ zzOpResult zzLinkedListInsert(zzLinkedList *ll, size_t idx, const void *elem) {
 
     DLNode *n = malloc(sizeof(DLNode) + ll->elSize);
     if (!n) return ZZ_ERR("Failed to allocate node");
-    zzMemoryCopy(n->data, elem, ll->elSize);
+    memcpy(n->data, elem, ll->elSize);
 
     DLNode *cur = ll->head;
     for (size_t i = 0; i < idx; i++) cur = cur->next;

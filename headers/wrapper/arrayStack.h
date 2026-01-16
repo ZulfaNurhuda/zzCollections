@@ -1,3 +1,11 @@
+/**
+ * @file arrayStack.h
+ * @brief LIFO stack wrapper around ArrayDeque
+ *
+ * Provides stack semantics (push/pop) using ArrayDeque as underlying storage.
+ * All operations have O(1) time complexity.
+ */
+
 #ifndef ARRAY_STACK_H
 #define ARRAY_STACK_H
 

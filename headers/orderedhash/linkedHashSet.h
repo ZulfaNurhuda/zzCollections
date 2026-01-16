@@ -1,7 +1,18 @@
+/**
+ * @file linkedHashSet.h
+ * @brief LinkedHashSet - Hash set with insertion order preservation
+ *
+ * Provides a hash set that maintains the insertion order of keys through
+ * a doubly-linked list. Combines O(1) hash set performance with ordered
+ * iteration capabilities. Keys can be tested for membership in O(1) time
+ * and iterated in insertion order.
+ */
+
 #ifndef LINKED_HASH_SET_H
 #define LINKED_HASH_SET_H
 
-#include "common.h"
+#include "types.h"
+#include "utils.h"
 #include "result.h"
 
 typedef struct LHSetNode {

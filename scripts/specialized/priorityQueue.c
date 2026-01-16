@@ -1,5 +1,5 @@
 #include "priorityQueue.h"
-#include "memory.h"
+#include <string.h>
 #include <stdlib.h>
 
 zzOpResult zzPriorityQueueInit(zzPriorityQueue *pq, size_t elSize, size_t capacity,
@@ -52,9 +52,9 @@ static void heapifyUp(zzPriorityQueue *pq, size_t idx) {
         if (pq->compareFn(child, parentElem) >= 0) break;
         
         char tmp[pq->elSize];
-        zzMemoryCopy(tmp, child, pq->elSize);
-        zzMemoryCopy(child, parentElem, pq->elSize);
-        zzMemoryCopy(parentElem, tmp, pq->elSize);
+        memcpy(tmp, child, pq->elSize);
+        memcpy(child, parentElem, pq->elSize);
+        memcpy(parentElem, tmp, pq->elSize);
         
         idx = parent;
     }
@@ -88,9 +88,9 @@ static void heapifyDown(zzPriorityQueue *pq, size_t idx) {
         void *smallestElem = (char*)pq->buffer + smallest * pq->elSize;
         
         char tmp[pq->elSize];
-        zzMemoryCopy(tmp, idxElem, pq->elSize);
-        zzMemoryCopy(idxElem, smallestElem, pq->elSize);
-        zzMemoryCopy(smallestElem, tmp, pq->elSize);
+        memcpy(tmp, idxElem, pq->elSize);
+        memcpy(idxElem, smallestElem, pq->elSize);
+        memcpy(smallestElem, tmp, pq->elSize);
         
         idx = smallest;
     }
@@ -106,7 +106,7 @@ zzOpResult zzPriorityQueuePush(zzPriorityQueue *pq, const void *elem) {
     }
 
     void *target = (char*)pq->buffer + pq->size * pq->elSize;
-    zzMemoryCopy(target, elem, pq->elSize);
+    memcpy(target, elem, pq->elSize);
     heapifyUp(pq, pq->size);
     pq->size++;
     return ZZ_OK();
@@ -117,12 +117,12 @@ zzOpResult zzPriorityQueuePop(zzPriorityQueue *pq, void *out) {
     if (!out) return ZZ_ERR("Output buffer is NULL");
     if (pq->size == 0) return ZZ_ERR("Queue is empty");
 
-    zzMemoryCopy(out, pq->buffer, pq->elSize);
+    memcpy(out, pq->buffer, pq->elSize);
 
     pq->size--;
     if (pq->size > 0) {
         void *last = (char*)pq->buffer + pq->size * pq->elSize;
-        zzMemoryCopy(pq->buffer, last, pq->elSize);
+        memcpy(pq->buffer, last, pq->elSize);
         heapifyDown(pq, 0);
     }
 
@@ -134,7 +134,7 @@ zzOpResult zzPriorityQueuePeek(const zzPriorityQueue *pq, void *out) {
     if (!out) return ZZ_ERR("Output buffer is NULL");
     if (pq->size == 0) return ZZ_ERR("Queue is empty");
 
-    zzMemoryCopy(out, pq->buffer, pq->elSize);
+    memcpy(out, pq->buffer, pq->elSize);
     return ZZ_OK();
 }
 

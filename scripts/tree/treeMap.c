@@ -1,5 +1,5 @@
 #include "treeMap.h"
-#include "memory.h"
+#include <string.h>
 #include <stdlib.h>
 
 #define KEY_PTR(node) ((node)->data)
@@ -118,7 +118,7 @@ zzOpResult zzTreeMapPut(zzTreeMap *tm, const void *key, const void *value) {
         int cmp = tm->compareFn(key, KEY_PTR(cur));
         if (cmp == 0) {
             if (tm->valueFree) tm->valueFree(VAL_PTR(cur, tm->keySize));
-            zzMemoryCopy(VAL_PTR(cur, tm->keySize), value, tm->valueSize);
+            memcpy(VAL_PTR(cur, tm->keySize), value, tm->valueSize);
             return ZZ_OK();
         }
         cur = (cmp < 0) ? cur->left : cur->right;
@@ -127,8 +127,8 @@ zzOpResult zzTreeMapPut(zzTreeMap *tm, const void *key, const void *value) {
     TreeMapNode *node = malloc(sizeof(TreeMapNode) + tm->keySize + tm->valueSize);
     if (!node) return ZZ_ERR("Failed to allocate node");
 
-    zzMemoryCopy(KEY_PTR(node), key, tm->keySize);
-    zzMemoryCopy(VAL_PTR(node, tm->keySize), value, tm->valueSize);
+    memcpy(KEY_PTR(node), key, tm->keySize);
+    memcpy(VAL_PTR(node, tm->keySize), value, tm->valueSize);
     node->left = node->right = NULL;
     node->parent = parent;
     node->color = RB_RED;
@@ -151,7 +151,7 @@ zzOpResult zzTreeMapGet(const zzTreeMap *tm, const void *key, void *valueOut) {
     while (cur) {
         int cmp = tm->compareFn(key, KEY_PTR(cur));
         if (cmp == 0) {
-            zzMemoryCopy(valueOut, VAL_PTR(cur, tm->keySize), tm->valueSize);
+            memcpy(valueOut, VAL_PTR(cur, tm->keySize), tm->valueSize);
             return ZZ_OK();
         }
         cur = (cmp < 0) ? cur->left : cur->right;
@@ -321,8 +321,8 @@ zzOpResult zzTreeMapGetMin(const zzTreeMap *tm, void *keyOut, void *valueOut) {
     if (!tm->root) return ZZ_ERR("Tree is empty");
 
     TreeMapNode *min = zzTreeMapMin(tm->root);
-    if (keyOut) zzMemoryCopy(keyOut, KEY_PTR(min), tm->keySize);
-    if (valueOut) zzMemoryCopy(valueOut, VAL_PTR(min, tm->keySize), tm->valueSize);
+    if (keyOut) memcpy(keyOut, KEY_PTR(min), tm->keySize);
+    if (valueOut) memcpy(valueOut, VAL_PTR(min, tm->keySize), tm->valueSize);
     return ZZ_OK();
 }
 
@@ -331,7 +331,7 @@ zzOpResult zzTreeMapGetMax(const zzTreeMap *tm, void *keyOut, void *valueOut) {
     if (!tm->root) return ZZ_ERR("Tree is empty");
 
     TreeMapNode *max = zzTreeMapMax(tm->root);
-    if (keyOut) zzMemoryCopy(keyOut, KEY_PTR(max), tm->keySize);
-    if (valueOut) zzMemoryCopy(valueOut, VAL_PTR(max, tm->keySize), tm->valueSize);
+    if (keyOut) memcpy(keyOut, KEY_PTR(max), tm->keySize);
+    if (valueOut) memcpy(valueOut, VAL_PTR(max, tm->keySize), tm->valueSize);
     return ZZ_OK();
 }

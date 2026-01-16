@@ -1,5 +1,5 @@
 #include "linkedHashSet.h"
-#include "memory.h"
+#include <string.h>
 #include <stdlib.h>
 
 zzOpResult zzLinkedHashSetInit(zzLinkedHashSet *lhs, size_t keySize, size_t capacity,
@@ -76,7 +76,7 @@ zzOpResult zzLinkedHashSetInsert(zzLinkedHashSet *lhs, const void *key) {
     if (!node) return ZZ_ERR("Failed to allocate node");
 
     node->hash = hash;
-    zzMemoryCopy(node->key, key, lhs->keySize);
+    memcpy(node->key, key, lhs->keySize);
 
     node->hashNext = lhs->buckets[idx];
     lhs->buckets[idx] = node;
@@ -165,7 +165,7 @@ zzOpResult zzLinkedHashSetGetFirst(const zzLinkedHashSet *lhs, void *keyOut) {
     if (!keyOut) return ZZ_ERR("Key output pointer is NULL");
     if (!lhs->head) return ZZ_ERR("Set is empty");
 
-    zzMemoryCopy(keyOut, lhs->head->key, lhs->keySize);
+    memcpy(keyOut, lhs->head->key, lhs->keySize);
     return ZZ_OK();
 }
 
@@ -174,6 +174,6 @@ zzOpResult zzLinkedHashSetGetLast(const zzLinkedHashSet *lhs, void *keyOut) {
     if (!keyOut) return ZZ_ERR("Key output pointer is NULL");
     if (!lhs->tail) return ZZ_ERR("Set is empty");
 
-    zzMemoryCopy(keyOut, lhs->tail->key, lhs->keySize);
+    memcpy(keyOut, lhs->tail->key, lhs->keySize);
     return ZZ_OK();
 }

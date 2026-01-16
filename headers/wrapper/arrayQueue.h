@@ -1,3 +1,11 @@
+/**
+ * @file arrayQueue.h
+ * @brief FIFO queue wrapper around ArrayDeque
+ *
+ * Provides queue semantics (enqueue/dequeue) using ArrayDeque as underlying storage.
+ * All operations have O(1) time complexity.
+ */
+
 #ifndef ARRAY_QUEUE_H
 #define ARRAY_QUEUE_H
 

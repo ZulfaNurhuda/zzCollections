@@ -1,5 +1,5 @@
 #include "treeSet.h"
-#include "memory.h"
+#include <string.h>
 #include <stdlib.h>
 
 zzOpResult zzTreeSetInit(zzTreeSet *ts, size_t keySize, zzCompareFn compareFn, zzFreeFn keyFree) {
@@ -114,7 +114,7 @@ zzOpResult zzTreeSetInsert(zzTreeSet *ts, const void *key) {
     TreeSetNode *node = malloc(sizeof(TreeSetNode) + ts->keySize);
     if (!node) return ZZ_ERR("Failed to allocate node");
 
-    zzMemoryCopy(node->key, key, ts->keySize);
+    memcpy(node->key, key, ts->keySize);
     node->left = node->right = NULL;
     node->parent = parent;
     node->color = TS_RED;
@@ -290,7 +290,7 @@ zzOpResult zzTreeSetGetMin(const zzTreeSet *ts, void *keyOut) {
     if (!ts->root) return ZZ_ERR("Set is empty");
 
     TreeSetNode *min = zzTreeSetMin(ts->root);
-    zzMemoryCopy(keyOut, min->key, ts->keySize);
+    memcpy(keyOut, min->key, ts->keySize);
     return ZZ_OK();
 }
 
@@ -300,6 +300,6 @@ zzOpResult zzTreeSetGetMax(const zzTreeSet *ts, void *keyOut) {
     if (!ts->root) return ZZ_ERR("Set is empty");
 
     TreeSetNode *max = zzTreeSetMax(ts->root);
-    zzMemoryCopy(keyOut, max->key, ts->keySize);
+    memcpy(keyOut, max->key, ts->keySize);
     return ZZ_OK();
 }

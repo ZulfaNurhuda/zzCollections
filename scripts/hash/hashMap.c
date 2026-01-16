@@ -1,5 +1,5 @@
 #include "hashMap.h"
-#include "memory.h"
+#include <string.h>
 #include <stdlib.h>
 
 zzOpResult zzHashMapInit(zzHashMap *hm, size_t keySize, size_t valueSize, size_t capacity,
@@ -76,7 +76,7 @@ zzOpResult zzHashMapPut(zzHashMap *hm, const void *key, const void *value) {
     while (cur) {
         if (cur->hash == hash && hm->equalsFn(cur->data, key)) {
             if (hm->valueFree) hm->valueFree(cur->data + hm->keySize);
-            zzMemoryCopy(cur->data + hm->keySize, value, hm->valueSize);
+            memcpy(cur->data + hm->keySize, value, hm->valueSize);
             return ZZ_OK();
         }
         cur = cur->next;
@@ -86,8 +86,8 @@ zzOpResult zzHashMapPut(zzHashMap *hm, const void *key, const void *value) {
     if (!node) return ZZ_ERR("Failed to allocate node");
 
     node->hash = hash;
-    zzMemoryCopy(node->data, key, hm->keySize);
-    zzMemoryCopy(node->data + hm->keySize, value, hm->valueSize);
+    memcpy(node->data, key, hm->keySize);
+    memcpy(node->data + hm->keySize, value, hm->valueSize);
     node->next = hm->buckets[idx];
     hm->buckets[idx] = node;
     hm->size++;
@@ -111,7 +111,7 @@ zzOpResult zzHashMapGet(const zzHashMap *hm, const void *key, void *valueOut) {
     MapNode *cur = hm->buckets[idx];
     while (cur) {
         if (cur->hash == hash && hm->equalsFn(cur->data, key)) {
-            zzMemoryCopy(valueOut, cur->data + hm->keySize, hm->valueSize);
+            memcpy(valueOut, cur->data + hm->keySize, hm->valueSize);
             return ZZ_OK();
         }
         cur = cur->next;

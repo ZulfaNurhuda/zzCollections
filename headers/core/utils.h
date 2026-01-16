@@ -1,3 +1,11 @@
+/**
+ * @file utils.h
+ * @brief Utility functions for common operations
+ *
+ * Provides default implementations of hash and equality functions
+ * for common data types (pointers, integers, strings).
+ */
+
 #ifndef ZZ_UTILS_H
 #define ZZ_UTILS_H
 
