@@ -74,4 +74,4 @@ typedef bool (*zzEqualsFn)(const void* a, const void* b);
  */
 typedef void (*zzForEachFn)(void* element, void* userdata);
 
-#endif // ZZ_TYPES_H
+#endif /* ZZ_TYPES_H */

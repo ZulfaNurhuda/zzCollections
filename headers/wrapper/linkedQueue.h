@@ -92,4 +92,4 @@ static inline void zzLinkedQueueClear(zzLinkedQueue *q) {
     zzLinkedListClear(q);
 }
 
-#endif
+#endif /* LINKED_QUEUE_H */

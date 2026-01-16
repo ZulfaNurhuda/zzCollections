@@ -197,4 +197,4 @@ zzOpResult zzLinkedHashMapGetFirst(const zzLinkedHashMap *lhm, void *keyOut, voi
  */
 zzOpResult zzLinkedHashMapGetLast(const zzLinkedHashMap *lhm, void *keyOut, void *valueOut);
 
-#endif
+#endif /* LINKED_HASH_MAP_H */

@@ -162,4 +162,4 @@ zzOpResult zzTreeSetGetMin(const zzTreeSet *ts, void *keyOut);
  */
 zzOpResult zzTreeSetGetMax(const zzTreeSet *ts, void *keyOut);
 
-#endif
+#endif /* TREE_SET_H */

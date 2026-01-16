@@ -77,4 +77,4 @@ static inline void zzArrayStackClear(zzArrayStack *s) {
     zzArrayDequeClear(s);
 }
 
-#endif
+#endif /* ARRAY_STACK_H */

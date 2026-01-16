@@ -174,4 +174,4 @@ zzOpResult zzLinkedListRemove(zzLinkedList *ll, size_t idx);
  */
 void zzLinkedListClear(zzLinkedList *ll);
 
-#endif
+#endif /* LINKED_LIST_H */

@@ -263,4 +263,4 @@ zzOpResult zzArrayListInsert(zzArrayList *al, size_t idx, const void *elem);
  */
 zzOpResult zzArrayListIndexOf(const zzArrayList *al, const void *elem, zzCompareFn cmp, int *indexOut);
 
-#endif
+#endif /* ARRAY_LIST_H */

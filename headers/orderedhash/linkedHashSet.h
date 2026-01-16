@@ -172,4 +172,4 @@ zzOpResult zzLinkedHashSetGetFirst(const zzLinkedHashSet *lhs, void *keyOut);
  */
 zzOpResult zzLinkedHashSetGetLast(const zzLinkedHashSet *lhs, void *keyOut);
 
-#endif
+#endif /* LINKED_HASH_SET_H */

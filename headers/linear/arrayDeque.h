@@ -159,4 +159,4 @@ zzOpResult zzArrayDequeGet(const zzArrayDeque *ad, size_t idx, void *out);
  */
 void zzArrayDequeClear(zzArrayDeque *ad);
 
-#endif
+#endif /* ARRAY_DEQUE_H */

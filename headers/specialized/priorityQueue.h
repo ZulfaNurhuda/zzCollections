@@ -127,4 +127,4 @@ zzOpResult zzPriorityQueuePeek(const zzPriorityQueue *pq, void *out);
  */
 void zzPriorityQueueClear(zzPriorityQueue *pq);
 
-#endif
+#endif /* PRIORITY_QUEUE_H */

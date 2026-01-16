@@ -160,4 +160,4 @@ zzOpResult zzCircularBufferPeekBack(const zzCircularBuffer *cb, void *out);
  */
 void zzCircularBufferClear(zzCircularBuffer *cb);
 
-#endif
+#endif /* CIRCULAR_BUFFER_H */

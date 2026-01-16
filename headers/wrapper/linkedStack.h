@@ -92,4 +92,4 @@ static inline void zzLinkedStackClear(zzLinkedStack *s) {
     zzLinkedListClear(s);
 }
 
-#endif
+#endif /* LINKED_STACK_H */

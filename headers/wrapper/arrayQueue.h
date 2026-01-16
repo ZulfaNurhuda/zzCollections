@@ -77,4 +77,4 @@ static inline void zzArrayQueueClear(zzArrayQueue *q) {
     zzArrayDequeClear(q);
 }
 
-#endif
+#endif /* ARRAY_QUEUE_H */

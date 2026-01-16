@@ -188,4 +188,4 @@ zzOpResult zzTreeMapGetMin(const zzTreeMap *tm, void *keyOut, void *valueOut);
  */
 zzOpResult zzTreeMapGetMax(const zzTreeMap *tm, void *keyOut, void *valueOut);
 
-#endif
+#endif /* TREE_MAP_H */
