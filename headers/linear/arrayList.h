@@ -7,9 +7,9 @@
 
 typedef struct zzArrayList {
     void *buffer;
-    size_t elSize;
     size_t size;
     size_t capacity;
+    size_t elSize;
     zzFreeFn elemFree;
 } zzArrayList;
 

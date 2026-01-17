@@ -5,20 +5,18 @@
 #include "utils.h"
 #include "result.h"
 
-typedef enum { TS_RED, TS_BLACK } TSColor;
-
 typedef struct TreeSetNode {
     struct TreeSetNode *left;
     struct TreeSetNode *right;
     struct TreeSetNode *parent;
-    TSColor color;
+    zzRBColor color;
     unsigned char key[];
 } TreeSetNode;
 
 typedef struct zzTreeSet {
     TreeSetNode *root;
-    size_t keySize;
     size_t size;
+    size_t keySize;
     zzCompareFn compareFn;
     zzFreeFn keyFree;
 } zzTreeSet;

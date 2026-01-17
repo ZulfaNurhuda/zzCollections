@@ -32,7 +32,8 @@ void zzArrayListFree(zzArrayList *al) {
 }
 
 static zzOpResult zzArrayListGrow(zzArrayList *al) {
-    size_t newCap = al->capacity * 2;
+    size_t newCap = al->capacity + (al->capacity >> 1);
+    if (newCap < al->capacity + 8) newCap = al->capacity + 8;
     void *newBuf = realloc(al->buffer, al->elSize * newCap);
     if (!newBuf) return ZZ_ERR("Failed to grow buffer (realloc failed)");
     al->buffer = newBuf;

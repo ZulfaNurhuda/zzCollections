@@ -14,8 +14,8 @@ typedef struct DLNode {
 typedef struct zzLinkedList {
     DLNode *head;
     DLNode *tail;
-    size_t elSize;
     size_t size;
+    size_t elSize;
     zzFreeFn elemFree;
 } zzLinkedList;
 

@@ -13,10 +13,10 @@ typedef struct MapNode {
 
 typedef struct zzHashMap {
     MapNode **buckets;
-    size_t keySize;
-    size_t valueSize;
     size_t capacity;
     size_t size;
+    size_t keySize;
+    size_t valueSize;
     float loadFactor;
     zzHashFn hashFn;
     zzEqualsFn equalsFn;

@@ -17,9 +17,9 @@ typedef struct zzLinkedHashSet {
     LHSetNode **buckets;
     LHSetNode *head;
     LHSetNode *tail;
-    size_t keySize;
     size_t capacity;
     size_t size;
+    size_t keySize;
     float loadFactor;
     zzHashFn hashFn;
     zzEqualsFn equalsFn;

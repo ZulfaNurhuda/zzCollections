@@ -7,9 +7,9 @@
 
 typedef struct zzPriorityQueue {
     void *buffer;
-    size_t elSize;
     size_t size;
     size_t capacity;
+    size_t elSize;
     zzCompareFn compareFn;
     zzFreeFn elemFree;
 } zzPriorityQueue;

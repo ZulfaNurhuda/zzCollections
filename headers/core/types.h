@@ -5,14 +5,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef enum { ZZ_RED, ZZ_BLACK } zzRBColor;
+
 typedef void (*zzFreeFn)(void*);
-
 typedef int (*zzCompareFn)(const void* a, const void* b);
-
 typedef uint32_t (*zzHashFn)(const void* key);
-
 typedef bool (*zzEqualsFn)(const void* a, const void* b);
-
 typedef void (*zzForEachFn)(void* element, void* userdata);
 
 #endif

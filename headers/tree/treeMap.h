@@ -5,21 +5,19 @@
 #include "utils.h"
 #include "result.h"
 
-typedef enum { RB_RED, RB_BLACK } RBColor;
-
 typedef struct TreeMapNode {
     struct TreeMapNode *left;
     struct TreeMapNode *right;
     struct TreeMapNode *parent;
-    RBColor color;
+    zzRBColor color;
     unsigned char data[];
 } TreeMapNode;
 
 typedef struct zzTreeMap {
     TreeMapNode *root;
+    size_t size;
     size_t keySize;
     size_t valueSize;
-    size_t size;
     zzCompareFn compareFn;
     zzFreeFn keyFree;
     zzFreeFn valueFree;

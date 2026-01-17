@@ -8,8 +8,8 @@ zzOpResult zzTreeSetInit(zzTreeSet *ts, size_t keySize, zzCompareFn compareFn, z
     if (!compareFn) return ZZ_ERR("Comparison function is NULL");
 
     ts->root = NULL;
-    ts->keySize = keySize;
     ts->size = 0;
+    ts->keySize = keySize;
     ts->compareFn = compareFn;
     ts->keyFree = keyFree;
     return ZZ_OK();
@@ -59,42 +59,42 @@ static void tsRotateRight(zzTreeSet *ts, TreeSetNode *y) {
 }
 
 static void tsInsertFixup(zzTreeSet *ts, TreeSetNode *z) {
-    while (z->parent && z->parent->color == TS_RED) {
+    while (z->parent && z->parent->color == ZZ_RED) {
         if (z->parent == z->parent->parent->left) {
             TreeSetNode *y = z->parent->parent->right;
-            if (y && y->color == TS_RED) {
-                z->parent->color = TS_BLACK;
-                y->color = TS_BLACK;
-                z->parent->parent->color = TS_RED;
+            if (y && y->color == ZZ_RED) {
+                z->parent->color = ZZ_BLACK;
+                y->color = ZZ_BLACK;
+                z->parent->parent->color = ZZ_RED;
                 z = z->parent->parent;
             } else {
                 if (z == z->parent->right) {
                     z = z->parent;
                     tsRotateLeft(ts, z);
                 }
-                z->parent->color = TS_BLACK;
-                z->parent->parent->color = TS_RED;
+                z->parent->color = ZZ_BLACK;
+                z->parent->parent->color = ZZ_RED;
                 tsRotateRight(ts, z->parent->parent);
             }
         } else {
             TreeSetNode *y = z->parent->parent->left;
-            if (y && y->color == TS_RED) {
-                z->parent->color = TS_BLACK;
-                y->color = TS_BLACK;
-                z->parent->parent->color = TS_RED;
+            if (y && y->color == ZZ_RED) {
+                z->parent->color = ZZ_BLACK;
+                y->color = ZZ_BLACK;
+                z->parent->parent->color = ZZ_RED;
                 z = z->parent->parent;
             } else {
                 if (z == z->parent->left) {
                     z = z->parent;
                     tsRotateRight(ts, z);
                 }
-                z->parent->color = TS_BLACK;
-                z->parent->parent->color = TS_RED;
+                z->parent->color = ZZ_BLACK;
+                z->parent->parent->color = ZZ_RED;
                 tsRotateLeft(ts, z->parent->parent);
             }
         }
     }
-    ts->root->color = TS_BLACK;
+    ts->root->color = ZZ_BLACK;
 }
 
 zzOpResult zzTreeSetInsert(zzTreeSet *ts, const void *key) {
@@ -117,7 +117,7 @@ zzOpResult zzTreeSetInsert(zzTreeSet *ts, const void *key) {
     memcpy(node->key, key, ts->keySize);
     node->left = node->right = NULL;
     node->parent = parent;
-    node->color = TS_RED;
+    node->color = ZZ_RED;
 
     if (!parent) ts->root = node;
     else if (ts->compareFn(key, parent->key) < 0) parent->left = node;
@@ -158,66 +158,66 @@ static void tsTransplant(zzTreeSet *ts, TreeSetNode *u, TreeSetNode *v) {
 }
 
 static void tsDeleteFixup(zzTreeSet *ts, TreeSetNode *x, TreeSetNode *xParent) {
-    while (x != ts->root && (!x || x->color == TS_BLACK)) {
+    while (x != ts->root && (!x || x->color == ZZ_BLACK)) {
         if (x == (xParent ? xParent->left : NULL)) {
             TreeSetNode *w = xParent->right;
-            if (w && w->color == TS_RED) {
-                w->color = TS_BLACK;
-                xParent->color = TS_RED;
+            if (w && w->color == ZZ_RED) {
+                w->color = ZZ_BLACK;
+                xParent->color = ZZ_RED;
                 tsRotateLeft(ts, xParent);
                 w = xParent->right;
             }
-            if (w && (!w->left || w->left->color == TS_BLACK) &&
-                (!w->right || w->right->color == TS_BLACK)) {
-                w->color = TS_RED;
+            if (w && (!w->left || w->left->color == ZZ_BLACK) &&
+                (!w->right || w->right->color == ZZ_BLACK)) {
+                w->color = ZZ_RED;
                 x = xParent;
                 xParent = x ? x->parent : NULL;
             } else {
-                if (w && (!w->right || w->right->color == TS_BLACK)) {
-                    if (w->left) w->left->color = TS_BLACK;
-                    w->color = TS_RED;
+                if (w && (!w->right || w->right->color == ZZ_BLACK)) {
+                    if (w->left) w->left->color = ZZ_BLACK;
+                    w->color = ZZ_RED;
                     tsRotateRight(ts, w);
                     w = xParent->right;
                 }
                 if (w) {
                     w->color = xParent->color;
-                    if (w->right) w->right->color = TS_BLACK;
+                    if (w->right) w->right->color = ZZ_BLACK;
                 }
-                xParent->color = TS_BLACK;
+                xParent->color = ZZ_BLACK;
                 tsRotateLeft(ts, xParent);
                 x = ts->root;
             }
         } else {
             TreeSetNode *w = xParent->left;
-            if (w && w->color == TS_RED) {
-                w->color = TS_BLACK;
-                xParent->color = TS_RED;
+            if (w && w->color == ZZ_RED) {
+                w->color = ZZ_BLACK;
+                xParent->color = ZZ_RED;
                 tsRotateRight(ts, xParent);
                 w = xParent->left;
             }
-            if (w && (!w->right || w->right->color == TS_BLACK) &&
-                (!w->left || w->left->color == TS_BLACK)) {
-                w->color = TS_RED;
+            if (w && (!w->right || w->right->color == ZZ_BLACK) &&
+                (!w->left || w->left->color == ZZ_BLACK)) {
+                w->color = ZZ_RED;
                 x = xParent;
                 xParent = x ? x->parent : NULL;
             } else {
-                if (w && (!w->left || w->left->color == TS_BLACK)) {
-                    if (w->right) w->right->color = TS_BLACK;
-                    w->color = TS_RED;
+                if (w && (!w->left || w->left->color == ZZ_BLACK)) {
+                    if (w->right) w->right->color = ZZ_BLACK;
+                    w->color = ZZ_RED;
                     tsRotateLeft(ts, w);
                     w = xParent->left;
                 }
                 if (w) {
                     w->color = xParent->color;
-                    if (w->left) w->left->color = TS_BLACK;
+                    if (w->left) w->left->color = ZZ_BLACK;
                 }
-                xParent->color = TS_BLACK;
+                xParent->color = ZZ_BLACK;
                 tsRotateRight(ts, xParent);
                 x = ts->root;
             }
         }
     }
-    if (x) x->color = TS_BLACK;
+    if (x) x->color = ZZ_BLACK;
 }
 
 zzOpResult zzTreeSetRemove(zzTreeSet *ts, const void *key) {
@@ -234,7 +234,7 @@ zzOpResult zzTreeSetRemove(zzTreeSet *ts, const void *key) {
 
     TreeSetNode *y = z;
     TreeSetNode *x, *xParent;
-    TSColor yOrigColor = y->color;
+    zzRBColor yOrigColor = y->color;
 
     if (!z->left) {
         x = z->right;
@@ -270,7 +270,7 @@ zzOpResult zzTreeSetRemove(zzTreeSet *ts, const void *key) {
     free(z);
     ts->size--;
 
-    if (yOrigColor == TS_BLACK) {
+    if (yOrigColor == ZZ_BLACK) {
         tsDeleteFixup(ts, x, xParent);
     }
 

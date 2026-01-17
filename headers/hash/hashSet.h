@@ -13,9 +13,9 @@ typedef struct SetNode {
 
 typedef struct zzHashSet {
     SetNode **buckets;
-    size_t keySize;
     size_t capacity;
     size_t size;
+    size_t keySize;
     float loadFactor;
     zzHashFn hashFn;
     zzEqualsFn equalsFn;

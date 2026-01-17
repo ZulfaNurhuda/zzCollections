@@ -2,7 +2,6 @@
 #define LINKED_STACK_H
 
 #include "linkedList.h"
-#include <string.h>
 
 typedef zzLinkedList zzLinkedStack;
 

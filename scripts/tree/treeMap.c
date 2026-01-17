@@ -12,9 +12,9 @@ zzOpResult zzTreeMapInit(zzTreeMap *tm, size_t keySize, size_t valueSize, zzComp
     if (!compareFn) return ZZ_ERR("Comparison function is NULL");
 
     tm->root = NULL;
+    tm->size = 0;
     tm->keySize = keySize;
     tm->valueSize = valueSize;
-    tm->size = 0;
     tm->compareFn = compareFn;
     tm->keyFree = keyFree;
     tm->valueFree = valueFree;
@@ -66,42 +66,42 @@ static void rotateRight(zzTreeMap *tm, TreeMapNode *y) {
 }
 
 static void insertFixup(zzTreeMap *tm, TreeMapNode *z) {
-    while (z->parent && z->parent->color == RB_RED) {
+    while (z->parent && z->parent->color == ZZ_RED) {
         if (z->parent == z->parent->parent->left) {
             TreeMapNode *y = z->parent->parent->right;
-            if (y && y->color == RB_RED) {
-                z->parent->color = RB_BLACK;
-                y->color = RB_BLACK;
-                z->parent->parent->color = RB_RED;
+            if (y && y->color == ZZ_RED) {
+                z->parent->color = ZZ_BLACK;
+                y->color = ZZ_BLACK;
+                z->parent->parent->color = ZZ_RED;
                 z = z->parent->parent;
             } else {
                 if (z == z->parent->right) {
                     z = z->parent;
                     rotateLeft(tm, z);
                 }
-                z->parent->color = RB_BLACK;
-                z->parent->parent->color = RB_RED;
+                z->parent->color = ZZ_BLACK;
+                z->parent->parent->color = ZZ_RED;
                 rotateRight(tm, z->parent->parent);
             }
         } else {
             TreeMapNode *y = z->parent->parent->left;
-            if (y && y->color == RB_RED) {
-                z->parent->color = RB_BLACK;
-                y->color = RB_BLACK;
-                z->parent->parent->color = RB_RED;
+            if (y && y->color == ZZ_RED) {
+                z->parent->color = ZZ_BLACK;
+                y->color = ZZ_BLACK;
+                z->parent->parent->color = ZZ_RED;
                 z = z->parent->parent;
             } else {
                 if (z == z->parent->left) {
                     z = z->parent;
                     rotateRight(tm, z);
                 }
-                z->parent->color = RB_BLACK;
-                z->parent->parent->color = RB_RED;
+                z->parent->color = ZZ_BLACK;
+                z->parent->parent->color = ZZ_RED;
                 rotateLeft(tm, z->parent->parent);
             }
         }
     }
-    tm->root->color = RB_BLACK;
+    tm->root->color = ZZ_BLACK;
 }
 
 zzOpResult zzTreeMapPut(zzTreeMap *tm, const void *key, const void *value) {
@@ -130,7 +130,7 @@ zzOpResult zzTreeMapPut(zzTreeMap *tm, const void *key, const void *value) {
     memcpy(VAL_PTR(node, tm->keySize), value, tm->valueSize);
     node->left = node->right = NULL;
     node->parent = parent;
-    node->color = RB_RED;
+    node->color = ZZ_RED;
 
     if (!parent) tm->root = node;
     else if (tm->compareFn(key, KEY_PTR(parent)) < 0) parent->left = node;
@@ -188,66 +188,66 @@ static void transplant(zzTreeMap *tm, TreeMapNode *u, TreeMapNode *v) {
 }
 
 static void deleteFixup(zzTreeMap *tm, TreeMapNode *x, TreeMapNode *xParent) {
-    while (x != tm->root && (!x || x->color == RB_BLACK)) {
+    while (x != tm->root && (!x || x->color == ZZ_BLACK)) {
         if (x == (xParent ? xParent->left : NULL)) {
             TreeMapNode *w = xParent->right;
-            if (w && w->color == RB_RED) {
-                w->color = RB_BLACK;
-                xParent->color = RB_RED;
+            if (w && w->color == ZZ_RED) {
+                w->color = ZZ_BLACK;
+                xParent->color = ZZ_RED;
                 rotateLeft(tm, xParent);
                 w = xParent->right;
             }
-            if (w && (!w->left || w->left->color == RB_BLACK) &&
-                (!w->right || w->right->color == RB_BLACK)) {
-                w->color = RB_RED;
+            if (w && (!w->left || w->left->color == ZZ_BLACK) &&
+                (!w->right || w->right->color == ZZ_BLACK)) {
+                w->color = ZZ_RED;
                 x = xParent;
                 xParent = x ? x->parent : NULL;
             } else {
-                if (w && (!w->right || w->right->color == RB_BLACK)) {
-                    if (w->left) w->left->color = RB_BLACK;
-                    w->color = RB_RED;
+                if (w && (!w->right || w->right->color == ZZ_BLACK)) {
+                    if (w->left) w->left->color = ZZ_BLACK;
+                    w->color = ZZ_RED;
                     rotateRight(tm, w);
                     w = xParent->right;
                 }
                 if (w) {
                     w->color = xParent->color;
-                    if (w->right) w->right->color = RB_BLACK;
+                    if (w->right) w->right->color = ZZ_BLACK;
                 }
-                xParent->color = RB_BLACK;
+                xParent->color = ZZ_BLACK;
                 rotateLeft(tm, xParent);
                 x = tm->root;
             }
         } else {
             TreeMapNode *w = xParent->left;
-            if (w && w->color == RB_RED) {
-                w->color = RB_BLACK;
-                xParent->color = RB_RED;
+            if (w && w->color == ZZ_RED) {
+                w->color = ZZ_BLACK;
+                xParent->color = ZZ_RED;
                 rotateRight(tm, xParent);
                 w = xParent->left;
             }
-            if (w && (!w->right || w->right->color == RB_BLACK) &&
-                (!w->left || w->left->color == RB_BLACK)) {
-                w->color = RB_RED;
+            if (w && (!w->right || w->right->color == ZZ_BLACK) &&
+                (!w->left || w->left->color == ZZ_BLACK)) {
+                w->color = ZZ_RED;
                 x = xParent;
                 xParent = x ? x->parent : NULL;
             } else {
-                if (w && (!w->left || w->left->color == RB_BLACK)) {
-                    if (w->right) w->right->color = RB_BLACK;
-                    w->color = RB_RED;
+                if (w && (!w->left || w->left->color == ZZ_BLACK)) {
+                    if (w->right) w->right->color = ZZ_BLACK;
+                    w->color = ZZ_RED;
                     rotateLeft(tm, w);
                     w = xParent->left;
                 }
                 if (w) {
                     w->color = xParent->color;
-                    if (w->left) w->left->color = RB_BLACK;
+                    if (w->left) w->left->color = ZZ_BLACK;
                 }
-                xParent->color = RB_BLACK;
+                xParent->color = ZZ_BLACK;
                 rotateRight(tm, xParent);
                 x = tm->root;
             }
         }
     }
-    if (x) x->color = RB_BLACK;
+    if (x) x->color = ZZ_BLACK;
 }
 
 zzOpResult zzTreeMapRemove(zzTreeMap *tm, const void *key) {
@@ -264,7 +264,7 @@ zzOpResult zzTreeMapRemove(zzTreeMap *tm, const void *key) {
 
     TreeMapNode *y = z;
     TreeMapNode *x, *xParent;
-    RBColor yOrigColor = y->color;
+    zzRBColor yOrigColor = y->color;
 
     if (!z->left) {
         x = z->right;
@@ -301,7 +301,7 @@ zzOpResult zzTreeMapRemove(zzTreeMap *tm, const void *key) {
     free(z);
     tm->size--;
 
-    if (yOrigColor == RB_BLACK) {
+    if (yOrigColor == ZZ_BLACK) {
         deleteFixup(tm, x, xParent);
     }
 

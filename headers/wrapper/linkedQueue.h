@@ -2,7 +2,6 @@
 #define LINKED_QUEUE_H
 
 #include "linkedList.h"
-#include <string.h>
 
 typedef zzLinkedList zzLinkedQueue;
 
