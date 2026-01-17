@@ -1,3 +1,12 @@
+/**
+ * @file demo.c
+ * @brief Demonstration program for the zzCollections library.
+ *
+ * This program demonstrates the usage of all data structures provided by the
+ * zzCollections library. It showcases how to initialize, use, and free each
+ * data structure with various examples and operations.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,10 +27,25 @@
 #include "circularBuffer.h"
 #include "utils.h"
 
+/**
+ * @brief Prints a visual separator line for the demo output.
+ *
+ * This function prints a horizontal line to visually separate different
+ * sections of the demo output.
+ */
 void printSeparator() {
     printf("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n");
 }
 
+/**
+ * @brief Main function demonstrating the usage of all data structures in the library.
+ *
+ * This function serves as the entry point for the demonstration program.
+ * It showcases the initialization, usage, and cleanup of each data structure
+ * provided by the zzCollections library.
+ *
+ * @return int Exit status of the program (0 for success)
+ */
 int main() {
     printf("\n");
     printf("╔═══════════════════════════════════════════════════╗\n");

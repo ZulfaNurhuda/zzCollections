@@ -1,7 +1,30 @@
+/**
+ * @file arrayDeque.c
+ * @brief Implementation of the circular buffer-based double-ended queue (deque) data structure.
+ *
+ * This module provides the implementation for the ArrayDeque data structure,
+ * which offers efficient double-ended queue functionality using a circular buffer
+ * approach. The implementation handles memory management and provides O(1)
+ * operations for adding and removing elements from both ends.
+ */
+
 #include "arrayDeque.h"
 #include <string.h>
 #include <stdlib.h>
 
+/**
+ * @brief Initializes a new ArrayDeque with the specified element size and capacity.
+ *
+ * This function initializes an ArrayDeque structure with the given element size
+ * and initial capacity. The capacity will be automatically increased as needed
+ * when elements are added to the deque.
+ *
+ * @param[out] ad Pointer to the ArrayDeque structure to initialize
+ * @param[in] elSize Size in bytes of each element that will be stored in the deque
+ * @param[in] capacity Initial capacity of the deque (will be adjusted to at least 4)
+ * @param[in] elemFree Function to free individual elements when they are removed or the deque is freed, or NULL if not needed
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzArrayDequeInit(zzArrayDeque *ad, size_t elSize, size_t capacity, zzFreeFn elemFree) {
     if (!ad) return ZZ_ERR("ArrayDeque pointer is NULL");
     if (elSize == 0) return ZZ_ERR("Element size cannot be zero");
@@ -18,6 +41,15 @@ zzOpResult zzArrayDequeInit(zzArrayDeque *ad, size_t elSize, size_t capacity, zz
     return ZZ_OK();
 }
 
+/**
+ * @brief Frees all resources associated with the ArrayDeque.
+ *
+ * This function releases all memory used by the ArrayDeque, including calling
+ * the custom free function for each element if provided. After this function
+ * returns, the ArrayDeque structure should not be used until reinitialized.
+ *
+ * @param[in,out] ad Pointer to the ArrayDeque to free
+ */
 void zzArrayDequeFree(zzArrayDeque *ad) {
     if (!ad || !ad->buffer) return;
 
@@ -32,6 +64,18 @@ void zzArrayDequeFree(zzArrayDeque *ad) {
     ad->buffer = NULL;
 }
 
+/**
+ * @brief Internal function to resize the ArrayDeque buffer when capacity is exceeded.
+ *
+ * This helper function increases the capacity of the ArrayDeque to the specified
+ * size and reorganizes the elements to maintain proper ordering in the new buffer.
+ * The elements are copied from the old circular buffer to the new one with the
+ * front element at index 0.
+ *
+ * @param[in,out] ad Pointer to the ArrayDeque to resize
+ * @param[in] newCap New capacity for the ArrayDeque
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 static zzOpResult zzArrayDequeResize(zzArrayDeque *ad, size_t newCap) {
     void *newBuf = malloc(newCap * ad->elSize);
     if (!newBuf) return ZZ_ERR("Failed to grow buffer (realloc failed)");
@@ -50,6 +94,17 @@ static zzOpResult zzArrayDequeResize(zzArrayDeque *ad, size_t newCap) {
     return ZZ_OK();
 }
 
+/**
+ * @brief Adds an element to the front of the ArrayDeque.
+ *
+ * This function adds the specified element to the front of the deque. If the
+ * deque has reached its capacity, it will be automatically resized to accommodate
+ * the new element. The element is copied into the deque's internal buffer.
+ *
+ * @param[in,out] ad Pointer to the ArrayDeque to add to
+ * @param[in] elem Pointer to the element to add to the front (contents will be copied)
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzArrayDequePushFront(zzArrayDeque *ad, const void *elem) {
     if (!ad) return ZZ_ERR("ArrayDeque pointer is NULL");
     if (!elem) return ZZ_ERR("Element pointer is NULL");
@@ -65,6 +120,17 @@ zzOpResult zzArrayDequePushFront(zzArrayDeque *ad, const void *elem) {
     return ZZ_OK();
 }
 
+/**
+ * @brief Adds an element to the back of the ArrayDeque.
+ *
+ * This function adds the specified element to the back of the deque. If the
+ * deque has reached its capacity, it will be automatically resized to accommodate
+ * the new element. The element is copied into the deque's internal buffer.
+ *
+ * @param[in,out] ad Pointer to the ArrayDeque to add to
+ * @param[in] elem Pointer to the element to add to the back (contents will be copied)
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzArrayDequePushBack(zzArrayDeque *ad, const void *elem) {
     if (!ad) return ZZ_ERR("ArrayDeque pointer is NULL");
     if (!elem) return ZZ_ERR("Element pointer is NULL");
@@ -80,6 +146,17 @@ zzOpResult zzArrayDequePushBack(zzArrayDeque *ad, const void *elem) {
     return ZZ_OK();
 }
 
+/**
+ * @brief Removes an element from the front of the ArrayDeque.
+ *
+ * This function removes the element from the front of the deque and copies it
+ * to the output buffer. The deque size is decreased by one. If a custom free
+ * function was provided, it will not be called since the element is returned.
+ *
+ * @param[in,out] ad Pointer to the ArrayDeque to remove from
+ * @param[out] out Pointer to a buffer where the removed element will be copied
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzArrayDequePopFront(zzArrayDeque *ad, void *out) {
     if (!ad) return ZZ_ERR("ArrayDeque pointer is NULL");
     if (!out) return ZZ_ERR("Output buffer is NULL");
@@ -93,6 +170,17 @@ zzOpResult zzArrayDequePopFront(zzArrayDeque *ad, void *out) {
     return ZZ_OK();
 }
 
+/**
+ * @brief Removes an element from the back of the ArrayDeque.
+ *
+ * This function removes the element from the back of the deque and copies it
+ * to the output buffer. The deque size is decreased by one. If a custom free
+ * function was provided, it will not be called since the element is returned.
+ *
+ * @param[in,out] ad Pointer to the ArrayDeque to remove from
+ * @param[out] out Pointer to a buffer where the removed element will be copied
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzArrayDequePopBack(zzArrayDeque *ad, void *out) {
     if (!ad) return ZZ_ERR("ArrayDeque pointer is NULL");
     if (!out) return ZZ_ERR("Output buffer is NULL");
@@ -106,6 +194,16 @@ zzOpResult zzArrayDequePopBack(zzArrayDeque *ad, void *out) {
     return ZZ_OK();
 }
 
+/**
+ * @brief Peeks at the element at the front of the ArrayDeque without removing it.
+ *
+ * This function copies the element at the front of the deque to the output buffer
+ * without removing it from the deque. The deque size remains unchanged.
+ *
+ * @param[in] ad Pointer to the ArrayDeque to peek into
+ * @param[out] out Pointer to a buffer where the front element will be copied
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzArrayDequePeekFront(const zzArrayDeque *ad, void *out) {
     if (!ad) return ZZ_ERR("ArrayDeque pointer is NULL");
     if (!out) return ZZ_ERR("Output buffer is NULL");
@@ -115,6 +213,16 @@ zzOpResult zzArrayDequePeekFront(const zzArrayDeque *ad, void *out) {
     return ZZ_OK();
 }
 
+/**
+ * @brief Peeks at the element at the back of the ArrayDeque without removing it.
+ *
+ * This function copies the element at the back of the deque to the output buffer
+ * without removing it from the deque. The deque size remains unchanged.
+ *
+ * @param[in] ad Pointer to the ArrayDeque to peek into
+ * @param[out] out Pointer to a buffer where the back element will be copied
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzArrayDequePeekBack(const zzArrayDeque *ad, void *out) {
     if (!ad) return ZZ_ERR("ArrayDeque pointer is NULL");
     if (!out) return ZZ_ERR("Output buffer is NULL");
@@ -125,6 +233,18 @@ zzOpResult zzArrayDequePeekBack(const zzArrayDeque *ad, void *out) {
     return ZZ_OK();
 }
 
+/**
+ * @brief Gets an element at the specified index in the ArrayDeque.
+ *
+ * This function retrieves the element at the given index in the deque and copies
+ * it to the output buffer. The index is relative to the logical order of elements
+ * in the deque, not their physical positions in the circular buffer.
+ *
+ * @param[in] ad Pointer to the ArrayDeque to retrieve from
+ * @param[in] idx Index of the element to retrieve (0-based, relative to front)
+ * @param[out] out Pointer to a buffer where the element will be copied
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzArrayDequeGet(const zzArrayDeque *ad, size_t idx, void *out) {
     if (!ad) return ZZ_ERR("ArrayDeque pointer is NULL");
     if (!out) return ZZ_ERR("Output buffer is NULL");
@@ -135,6 +255,15 @@ zzOpResult zzArrayDequeGet(const zzArrayDeque *ad, size_t idx, void *out) {
     return ZZ_OK();
 }
 
+/**
+ * @brief Clears all elements from the ArrayDeque.
+ *
+ * This function removes all elements from the deque by calling the custom free
+ * function on each element (if provided) and resetting the size to zero.
+ * The underlying buffer remains allocated with the same capacity.
+ *
+ * @param[in,out] ad Pointer to the ArrayDeque to clear
+ */
 void zzArrayDequeClear(zzArrayDeque *ad) {
     if (!ad) return;
 
