@@ -15,6 +15,7 @@
 #include "types.h"
 #include "utils.h"
 #include "result.h"
+#include "iterator.h"
 
 /**
  * @brief Structure representing a node in the red-black tree.
@@ -46,6 +47,20 @@ typedef struct zzTreeMap {
     zzFreeFn keyFree;       /**< Function to free key memory, or NULL if not needed */
     zzFreeFn valueFree;     /**< Function to free value memory, or NULL if not needed */
 } zzTreeMap;
+
+/**
+ * @brief Structure representing an iterator for TreeMap.
+ *
+ * This structure provides in-order iteration through a TreeMap,
+ * maintaining a stack of nodes to traverse the tree in sorted order.
+ */
+typedef struct zzTreeMapIterator {
+    const zzTreeMap *map;           /**< Pointer to the TreeMap being iterated */
+    TreeMapNode **stack;            /**< Stack of nodes for in-order traversal */
+    size_t stackSize;               /**< Current size of the stack */
+    size_t stackCapacity;           /**< Maximum capacity of the stack */
+    zzIteratorState state;          /**< Current state of the iterator */
+} zzTreeMapIterator;
 
 /**
  * @brief Initializes a new TreeMap with the specified key and value sizes.
@@ -168,5 +183,53 @@ zzOpResult zzTreeMapGetMin(const zzTreeMap *tm, void *keyOut, void *valueOut);
  * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
  */
 zzOpResult zzTreeMapGetMax(const zzTreeMap *tm, void *keyOut, void *valueOut);
+
+/**
+ * @brief Initializes an iterator for the TreeMap.
+ *
+ * This function initializes an iterator to traverse the TreeMap in sorted order
+ * (in-order traversal). The iterator will visit key-value pairs from smallest
+ * to largest key according to the comparison function.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] tm Pointer to the TreeMap to iterate over
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzTreeMapIteratorInit(zzTreeMapIterator *it, const zzTreeMap *tm);
+
+/**
+ * @brief Frees resources associated with the TreeMap iterator.
+ *
+ * This function releases the memory used by the iterator's internal stack.
+ * The iterator should not be used after calling this function.
+ *
+ * @param[in,out] it Pointer to the iterator to free
+ */
+void zzTreeMapIteratorFree(zzTreeMapIterator *it);
+
+/**
+ * @brief Advances the iterator to the next key-value pair.
+ *
+ * This function moves the iterator to the next key-value pair in sorted order
+ * and copies the current key and value to the output buffers. Returns false when
+ * the iterator reaches the end of the map.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] keyOut Pointer to a buffer where the current key will be copied
+ * @param[out] valueOut Pointer to a buffer where the current value will be copied
+ * @return true if a key-value pair was retrieved, false if the iterator reached the end
+ */
+bool zzTreeMapIteratorNext(zzTreeMapIterator *it, void *keyOut, void *valueOut);
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another key-value pair
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzTreeMapIteratorHasNext(const zzTreeMapIterator *it);
 
 #endif

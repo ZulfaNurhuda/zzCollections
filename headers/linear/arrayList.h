@@ -13,6 +13,7 @@
 #include "types.h"
 #include "utils.h"
 #include "result.h"
+#include "iterator.h"
 
 /**
  * @brief Structure representing a dynamic array (ArrayList).
@@ -28,6 +29,18 @@ typedef struct zzArrayList {
     size_t elSize;     /**< Size in bytes of each individual element */
     zzFreeFn elemFree; /**< Function to free individual elements, or NULL if not needed */
 } zzArrayList;
+
+/**
+ * @brief Structure representing an iterator for ArrayList.
+ *
+ * This structure provides forward iteration through an ArrayList,
+ * maintaining the current position and reference to the list.
+ */
+typedef struct zzArrayListIterator {
+    const zzArrayList *list; /**< Pointer to the ArrayList being iterated */
+    size_t index;            /**< Current index position in the list */
+    zzIteratorState state;   /**< Current state of the iterator */
+} zzArrayListIterator;
 
 /**
  * @brief Initializes a new ArrayList with the specified element size and capacity.
@@ -148,5 +161,41 @@ zzOpResult zzArrayListInsert(zzArrayList *al, size_t idx, const void *elem);
  * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
  */
 zzOpResult zzArrayListIndexOf(const zzArrayList *al, const void *elem, zzCompareFn cmp, int *indexOut);
+
+/**
+ * @brief Initializes an iterator for the ArrayList.
+ *
+ * This function initializes an iterator to traverse the ArrayList from
+ * the beginning to the end. The iterator will be positioned at the first
+ * element if the list is not empty.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] al Pointer to the ArrayList to iterate over
+ */
+void zzArrayListIteratorInit(zzArrayListIterator *it, const zzArrayList *al);
+
+/**
+ * @brief Advances the iterator to the next element.
+ *
+ * This function moves the iterator to the next element in the ArrayList
+ * and copies the current element to the output buffer. Returns false when
+ * the iterator reaches the end of the list.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] valueOut Pointer to a buffer where the current element will be copied
+ * @return true if an element was retrieved, false if the iterator reached the end
+ */
+bool zzArrayListIteratorNext(zzArrayListIterator *it, void *valueOut);
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another element
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzArrayListIteratorHasNext(const zzArrayListIterator *it);
 
 #endif

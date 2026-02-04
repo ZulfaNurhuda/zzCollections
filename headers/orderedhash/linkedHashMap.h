@@ -15,6 +15,7 @@
 #include "types.h"
 #include "utils.h"
 #include "result.h"
+#include "iterator.h"
 
 /**
  * @brief Structure representing a node in the linked hash map.
@@ -52,6 +53,18 @@ typedef struct zzLinkedHashMap {
     zzFreeFn keyFree;      /**< Function to free key memory, or NULL if not needed */
     zzFreeFn valueFree;    /**< Function to free value memory, or NULL if not needed */
 } zzLinkedHashMap;
+
+/**
+ * @brief Structure representing an iterator for LinkedHashMap.
+ *
+ * This structure provides iteration through a LinkedHashMap in insertion order,
+ * following the linked list of nodes.
+ */
+typedef struct zzLinkedHashMapIterator {
+    const zzLinkedHashMap *map; /**< Pointer to the LinkedHashMap being iterated */
+    LHMapNode *current;         /**< Pointer to the current node */
+    zzIteratorState state;      /**< Current state of the iterator */
+} zzLinkedHashMapIterator;
 
 /**
  * @brief Initializes a new LinkedHashMap with the specified key and value sizes.
@@ -178,5 +191,41 @@ zzOpResult zzLinkedHashMapGetFirst(const zzLinkedHashMap *lhm, void *keyOut, voi
  * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
  */
 zzOpResult zzLinkedHashMapGetLast(const zzLinkedHashMap *lhm, void *keyOut, void *valueOut);
+
+/**
+ * @brief Initializes an iterator for the LinkedHashMap.
+ *
+ * This function initializes an iterator to traverse the LinkedHashMap in insertion order.
+ * The iterator will visit key-value pairs in the order they were inserted.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] lhm Pointer to the LinkedHashMap to iterate over
+ */
+void zzLinkedHashMapIteratorInit(zzLinkedHashMapIterator *it, const zzLinkedHashMap *lhm);
+
+/**
+ * @brief Advances the iterator to the next key-value pair.
+ *
+ * This function moves the iterator to the next key-value pair in insertion order
+ * and copies the current key and value to the output buffers. Returns false when
+ * the iterator reaches the end of the map.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] keyOut Pointer to a buffer where the current key will be copied
+ * @param[out] valueOut Pointer to a buffer where the current value will be copied
+ * @return true if a key-value pair was retrieved, false if the iterator reached the end
+ */
+bool zzLinkedHashMapIteratorNext(zzLinkedHashMapIterator *it, void *keyOut, void *valueOut);
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another key-value pair
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzLinkedHashMapIteratorHasNext(const zzLinkedHashMapIterator *it);
 
 #endif

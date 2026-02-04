@@ -13,6 +13,7 @@
 #include "types.h"
 #include "utils.h"
 #include "result.h"
+#include "iterator.h"
 
 /**
  * @brief Structure representing a double-ended queue (ArrayDeque).
@@ -29,6 +30,18 @@ typedef struct zzArrayDeque {
     size_t elSize;     /**< Size in bytes of each individual element */
     zzFreeFn elemFree; /**< Function to free individual elements, or NULL if not needed */
 } zzArrayDeque;
+
+/**
+ * @brief Structure representing an iterator for ArrayDeque.
+ *
+ * This structure provides forward iteration through an ArrayDeque,
+ * maintaining the current position and reference to the deque.
+ */
+typedef struct zzArrayDequeIterator {
+    const zzArrayDeque *deque; /**< Pointer to the ArrayDeque being iterated */
+    size_t index;              /**< Current logical index in the deque */
+    zzIteratorState state;     /**< Current state of the iterator */
+} zzArrayDequeIterator;
 
 /**
  * @brief Initializes a new ArrayDeque with the specified element size and capacity.
@@ -156,5 +169,41 @@ zzOpResult zzArrayDequeGet(const zzArrayDeque *ad, size_t idx, void *out);
  * @param[in,out] ad Pointer to the ArrayDeque to clear
  */
 void zzArrayDequeClear(zzArrayDeque *ad);
+
+/**
+ * @brief Initializes an iterator for the ArrayDeque.
+ *
+ * This function initializes an iterator to traverse the ArrayDeque from
+ * the front to the back. The iterator will be positioned at the first
+ * element if the deque is not empty.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] ad Pointer to the ArrayDeque to iterate over
+ */
+void zzArrayDequeIteratorInit(zzArrayDequeIterator *it, const zzArrayDeque *ad);
+
+/**
+ * @brief Advances the iterator to the next element.
+ *
+ * This function moves the iterator to the next element in the ArrayDeque
+ * and copies the current element to the output buffer. Returns false when
+ * the iterator reaches the end of the deque.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] valueOut Pointer to a buffer where the current element will be copied
+ * @return true if an element was retrieved, false if the iterator reached the end
+ */
+bool zzArrayDequeIteratorNext(zzArrayDequeIterator *it, void *valueOut);
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another element
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzArrayDequeIteratorHasNext(const zzArrayDequeIterator *it);
 
 #endif

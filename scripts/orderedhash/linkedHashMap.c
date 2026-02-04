@@ -206,3 +206,60 @@ zzOpResult zzLinkedHashMapGetLast(const zzLinkedHashMap *lhm, void *keyOut, void
     if (valueOut) memcpy(valueOut, lhm->tail->data + lhm->keySize, lhm->valueSize);
     return ZZ_OK();
 }
+/**
+ * @brief Initializes an iterator for the LinkedHashMap.
+ *
+ * This function initializes an iterator to traverse the LinkedHashMap in insertion order.
+ * The iterator will visit key-value pairs in the order they were inserted.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] lhm Pointer to the LinkedHashMap to iterate over
+ */
+void zzLinkedHashMapIteratorInit(zzLinkedHashMapIterator *it, const zzLinkedHashMap *lhm) {
+    if (!it || !lhm) return;
+    
+    it->map = lhm;
+    it->current = lhm->head;
+    it->state = (lhm->head != NULL) ? ZZ_ITER_VALID : ZZ_ITER_END;
+}
+
+/**
+ * @brief Advances the iterator to the next key-value pair.
+ *
+ * This function moves the iterator to the next key-value pair in insertion order
+ * and copies the current key and value to the output buffers. Returns false when
+ * the iterator reaches the end of the map.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] keyOut Pointer to a buffer where the current key will be copied
+ * @param[out] valueOut Pointer to a buffer where the current value will be copied
+ * @return true if a key-value pair was retrieved, false if the iterator reached the end
+ */
+bool zzLinkedHashMapIteratorNext(zzLinkedHashMapIterator *it, void *keyOut, void *valueOut) {
+    if (!it || !keyOut || !valueOut || it->state != ZZ_ITER_VALID || !it->current) return false;
+    
+    // Copy current key and value
+    memcpy(keyOut, it->current->data, it->map->keySize);
+    memcpy(valueOut, (char*)it->current->data + it->map->keySize, it->map->valueSize);
+    
+    // Move to next node in insertion order
+    it->current = it->current->next;
+    if (!it->current) {
+        it->state = ZZ_ITER_END;
+    }
+    
+    return true;
+}
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another key-value pair
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzLinkedHashMapIteratorHasNext(const zzLinkedHashMapIterator *it) {
+    return it && it->state == ZZ_ITER_VALID && it->current != NULL;
+}

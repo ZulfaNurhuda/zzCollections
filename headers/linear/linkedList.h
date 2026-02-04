@@ -14,6 +14,7 @@
 #include "types.h"
 #include "utils.h"
 #include "result.h"
+#include "iterator.h"
 
 /**
  * @brief Structure representing a node in the doubly-linked list.
@@ -41,6 +42,18 @@ typedef struct zzLinkedList {
     size_t elSize;   /**< Size in bytes of each individual element */
     zzFreeFn elemFree; /**< Function to free individual elements, or NULL if not needed */
 } zzLinkedList;
+
+/**
+ * @brief Structure representing an iterator for LinkedList.
+ *
+ * This structure provides forward iteration through a LinkedList,
+ * maintaining the current node and reference to the list.
+ */
+typedef struct zzLinkedListIterator {
+    const zzLinkedList *list; /**< Pointer to the LinkedList being iterated */
+    DLNode *current;          /**< Pointer to the current node */
+    zzIteratorState state;    /**< Current state of the iterator */
+} zzLinkedListIterator;
 
 /**
  * @brief Initializes a new LinkedList with the specified element size.
@@ -168,5 +181,41 @@ zzOpResult zzLinkedListRemove(zzLinkedList *ll, size_t idx);
  * @param[in,out] ll Pointer to the LinkedList to clear
  */
 void zzLinkedListClear(zzLinkedList *ll);
+
+/**
+ * @brief Initializes an iterator for the LinkedList.
+ *
+ * This function initializes an iterator to traverse the LinkedList from
+ * the head to the tail. The iterator will be positioned at the first
+ * element if the list is not empty.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] ll Pointer to the LinkedList to iterate over
+ */
+void zzLinkedListIteratorInit(zzLinkedListIterator *it, const zzLinkedList *ll);
+
+/**
+ * @brief Advances the iterator to the next element.
+ *
+ * This function moves the iterator to the next element in the LinkedList
+ * and copies the current element to the output buffer. Returns false when
+ * the iterator reaches the end of the list.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] valueOut Pointer to a buffer where the current element will be copied
+ * @return true if an element was retrieved, false if the iterator reached the end
+ */
+bool zzLinkedListIteratorNext(zzLinkedListIterator *it, void *valueOut);
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another element
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzLinkedListIteratorHasNext(const zzLinkedListIterator *it);
 
 #endif

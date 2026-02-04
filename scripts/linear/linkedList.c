@@ -314,3 +314,57 @@ void zzLinkedListClear(zzLinkedList *ll) {
     ll->head = ll->tail = NULL;
     ll->size = 0;
 }
+/**
+ * @brief Initializes an iterator for the LinkedList.
+ *
+ * This function initializes an iterator to traverse the LinkedList from
+ * the head to the tail. The iterator will be positioned at the first
+ * element if the list is not empty.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] ll Pointer to the LinkedList to iterate over
+ */
+void zzLinkedListIteratorInit(zzLinkedListIterator *it, const zzLinkedList *ll) {
+    if (!it || !ll) return;
+    
+    it->list = ll;
+    it->current = ll->head;
+    it->state = (ll->head != NULL) ? ZZ_ITER_VALID : ZZ_ITER_END;
+}
+
+/**
+ * @brief Advances the iterator to the next element.
+ *
+ * This function moves the iterator to the next element in the LinkedList
+ * and copies the current element to the output buffer. Returns false when
+ * the iterator reaches the end of the list.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] valueOut Pointer to a buffer where the current element will be copied
+ * @return true if an element was retrieved, false if the iterator reached the end
+ */
+bool zzLinkedListIteratorNext(zzLinkedListIterator *it, void *valueOut) {
+    if (!it || !valueOut || it->state != ZZ_ITER_VALID || !it->current) return false;
+    
+    memcpy(valueOut, it->current->data, it->list->elSize);
+    
+    it->current = it->current->next;
+    if (!it->current) {
+        it->state = ZZ_ITER_END;
+    }
+    
+    return true;
+}
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another element
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzLinkedListIteratorHasNext(const zzLinkedListIterator *it) {
+    return it && it->state == ZZ_ITER_VALID && it->current != NULL;
+}

@@ -285,3 +285,83 @@ void zzHashMapClear(zzHashMap *hm) {
     }
     hm->size = 0;
 }
+/**
+ * @brief Initializes an iterator for the HashMap.
+ *
+ * This function initializes an iterator to traverse the HashMap.
+ * The iteration order is not guaranteed to be consistent between
+ * different runs or after map modifications.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] hm Pointer to the HashMap to iterate over
+ */
+void zzHashMapIteratorInit(zzHashMapIterator *it, const zzHashMap *hm) {
+    if (!it || !hm) return;
+    
+    it->map = hm;
+    it->bucketIndex = 0;
+    it->currentNode = NULL;
+    it->state = ZZ_ITER_END;
+    
+    // Find first non-empty bucket
+    for (size_t i = 0; i < hm->capacity; i++) {
+        if (hm->buckets[i] != NULL) {
+            it->bucketIndex = i;
+            it->currentNode = hm->buckets[i];
+            it->state = ZZ_ITER_VALID;
+            break;
+        }
+    }
+}
+
+/**
+ * @brief Advances the iterator to the next key-value pair.
+ *
+ * This function moves the iterator to the next key-value pair in the HashMap
+ * and copies the current key and value to the output buffers. Returns false when
+ * the iterator reaches the end of the map.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] keyOut Pointer to a buffer where the current key will be copied
+ * @param[out] valueOut Pointer to a buffer where the current value will be copied
+ * @return true if a key-value pair was retrieved, false if the iterator reached the end
+ */
+bool zzHashMapIteratorNext(zzHashMapIterator *it, void *keyOut, void *valueOut) {
+    if (!it || !keyOut || !valueOut || it->state != ZZ_ITER_VALID || !it->currentNode) return false;
+    
+    // Copy current key and value
+    memcpy(keyOut, it->currentNode->data, it->map->keySize);
+    memcpy(valueOut, (char*)it->currentNode->data + it->map->keySize, it->map->valueSize);
+    
+    // Move to next node
+    it->currentNode = it->currentNode->next;
+    
+    // If no more nodes in current bucket, find next non-empty bucket
+    if (!it->currentNode) {
+        it->bucketIndex++;
+        while (it->bucketIndex < it->map->capacity && !it->map->buckets[it->bucketIndex]) {
+            it->bucketIndex++;
+        }
+        
+        if (it->bucketIndex < it->map->capacity) {
+            it->currentNode = it->map->buckets[it->bucketIndex];
+        } else {
+            it->state = ZZ_ITER_END;
+        }
+    }
+    
+    return true;
+}
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another key-value pair
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzHashMapIteratorHasNext(const zzHashMapIterator *it) {
+    return it && it->state == ZZ_ITER_VALID && it->currentNode != NULL;
+}

@@ -15,6 +15,7 @@
 #include "types.h"
 #include "utils.h"
 #include "result.h"
+#include "iterator.h"
 
 /**
  * @brief Structure representing a node in the linked hash set.
@@ -50,6 +51,18 @@ typedef struct zzLinkedHashSet {
     zzEqualsFn equalsFn;   /**< Function to compare keys for equality */
     zzFreeFn keyFree;      /**< Function to free key memory, or NULL if not needed */
 } zzLinkedHashSet;
+
+/**
+ * @brief Structure representing an iterator for LinkedHashSet.
+ *
+ * This structure provides iteration through a LinkedHashSet in insertion order,
+ * following the linked list of nodes.
+ */
+typedef struct zzLinkedHashSetIterator {
+    const zzLinkedHashSet *set; /**< Pointer to the LinkedHashSet being iterated */
+    LHSetNode *current;         /**< Pointer to the current node */
+    zzIteratorState state;      /**< Current state of the iterator */
+} zzLinkedHashSetIterator;
 
 /**
  * @brief Initializes a new LinkedHashSet with the specified key size.
@@ -155,5 +168,40 @@ zzOpResult zzLinkedHashSetGetFirst(const zzLinkedHashSet *lhs, void *keyOut);
  * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
  */
 zzOpResult zzLinkedHashSetGetLast(const zzLinkedHashSet *lhs, void *keyOut);
+
+/**
+ * @brief Initializes an iterator for the LinkedHashSet.
+ *
+ * This function initializes an iterator to traverse the LinkedHashSet in insertion order.
+ * The iterator will visit keys in the order they were inserted.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] lhs Pointer to the LinkedHashSet to iterate over
+ */
+void zzLinkedHashSetIteratorInit(zzLinkedHashSetIterator *it, const zzLinkedHashSet *lhs);
+
+/**
+ * @brief Advances the iterator to the next key.
+ *
+ * This function moves the iterator to the next key in insertion order
+ * and copies the current key to the output buffer. Returns false when
+ * the iterator reaches the end of the set.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] keyOut Pointer to a buffer where the current key will be copied
+ * @return true if a key was retrieved, false if the iterator reached the end
+ */
+bool zzLinkedHashSetIteratorNext(zzLinkedHashSetIterator *it, void *keyOut);
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another key
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzLinkedHashSetIteratorHasNext(const zzLinkedHashSetIterator *it);
 
 #endif

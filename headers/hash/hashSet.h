@@ -15,6 +15,7 @@
 #include "types.h"
 #include "utils.h"
 #include "result.h"
+#include "iterator.h"
 
 /**
  * @brief Structure representing a node in the hash set's collision chain.
@@ -45,6 +46,19 @@ typedef struct zzHashSet {
     zzEqualsFn equalsFn; /**< Function to compare keys for equality */
     zzFreeFn keyFree;    /**< Function to free key memory, or NULL if not needed */
 } zzHashSet;
+
+/**
+ * @brief Structure representing an iterator for HashSet.
+ *
+ * This structure provides iteration through a HashSet,
+ * maintaining the current bucket and node position.
+ */
+typedef struct zzHashSetIterator {
+    const zzHashSet *set;  /**< Pointer to the HashSet being iterated */
+    size_t bucketIndex;    /**< Current bucket index */
+    SetNode *currentNode;  /**< Current node in the bucket chain */
+    zzIteratorState state; /**< Current state of the iterator */
+} zzHashSetIterator;
 
 /**
  * @brief Initializes a new HashSet with the specified key size.
@@ -180,5 +194,41 @@ zzOpResult zzHashSetIntersection(const zzHashSet *s1, const zzHashSet *s2, zzHas
  * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
  */
 zzOpResult zzHashSetDifference(const zzHashSet *s1, const zzHashSet *s2, zzHashSet *result, zzHashFn hashFn, zzEqualsFn equalsFn, zzFreeFn keyFree);
+
+/**
+ * @brief Initializes an iterator for the HashSet.
+ *
+ * This function initializes an iterator to traverse the HashSet.
+ * The iteration order is not guaranteed to be consistent between
+ * different runs or after set modifications.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] s Pointer to the HashSet to iterate over
+ */
+void zzHashSetIteratorInit(zzHashSetIterator *it, const zzHashSet *s);
+
+/**
+ * @brief Advances the iterator to the next key.
+ *
+ * This function moves the iterator to the next key in the HashSet
+ * and copies the current key to the output buffer. Returns false when
+ * the iterator reaches the end of the set.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] keyOut Pointer to a buffer where the current key will be copied
+ * @return true if a key was retrieved, false if the iterator reached the end
+ */
+bool zzHashSetIteratorNext(zzHashSetIterator *it, void *keyOut);
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another key
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzHashSetIteratorHasNext(const zzHashSetIterator *it);
 
 #endif

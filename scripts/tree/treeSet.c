@@ -303,3 +303,108 @@ zzOpResult zzTreeSetGetMax(const zzTreeSet *ts, void *keyOut) {
     memcpy(keyOut, max->key, ts->keySize);
     return ZZ_OK();
 }
+/**
+ * @brief Initializes an iterator for the TreeSet.
+ *
+ * This function initializes an iterator to traverse the TreeSet in sorted order
+ * (in-order traversal). The iterator will visit keys from smallest to largest
+ * according to the comparison function.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] ts Pointer to the TreeSet to iterate over
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzTreeSetIteratorInit(zzTreeSetIterator *it, const zzTreeSet *ts) {
+    if (!it) return ZZ_ERR("Iterator pointer is NULL");
+    if (!ts) return ZZ_ERR("TreeSet pointer is NULL");
+    
+    it->set = ts;
+    it->stackSize = 0;
+    it->stackCapacity = ts->size + 1; // +1 to handle edge cases
+    it->state = ZZ_ITER_END;
+    
+    if (it->stackCapacity == 0) it->stackCapacity = 1;
+    
+    it->stack = malloc(sizeof(TreeSetNode*) * it->stackCapacity);
+    if (!it->stack) return ZZ_ERR("Failed to allocate iterator stack");
+    
+    // Push all left nodes starting from root
+    TreeSetNode *current = ts->root;
+    while (current) {
+        it->stack[it->stackSize++] = current;
+        current = current->left;
+    }
+    
+    if (it->stackSize > 0) {
+        it->state = ZZ_ITER_VALID;
+    }
+    
+    return ZZ_OK();
+}
+
+/**
+ * @brief Frees resources associated with the TreeSet iterator.
+ *
+ * This function releases the memory used by the iterator's internal stack.
+ * The iterator should not be used after calling this function.
+ *
+ * @param[in,out] it Pointer to the iterator to free
+ */
+void zzTreeSetIteratorFree(zzTreeSetIterator *it) {
+    if (!it) return;
+    
+    if (it->stack) {
+        free(it->stack);
+        it->stack = NULL;
+    }
+    it->stackSize = 0;
+    it->stackCapacity = 0;
+    it->state = ZZ_ITER_END;
+}
+
+/**
+ * @brief Advances the iterator to the next key.
+ *
+ * This function moves the iterator to the next key in sorted order
+ * and copies the current key to the output buffer. Returns false when
+ * the iterator reaches the end of the set.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] keyOut Pointer to a buffer where the current key will be copied
+ * @return true if a key was retrieved, false if the iterator reached the end
+ */
+bool zzTreeSetIteratorNext(zzTreeSetIterator *it, void *keyOut) {
+    if (!it || !keyOut || it->state != ZZ_ITER_VALID || it->stackSize == 0) return false;
+    
+    // Pop the top node
+    TreeSetNode *current = it->stack[--it->stackSize];
+    
+    // Copy key
+    memcpy(keyOut, current->key, it->set->keySize);
+    
+    // Push all left nodes of the right subtree
+    current = current->right;
+    while (current) {
+        it->stack[it->stackSize++] = current;
+        current = current->left;
+    }
+    
+    if (it->stackSize == 0) {
+        it->state = ZZ_ITER_END;
+    }
+    
+    return true;
+}
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another key
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzTreeSetIteratorHasNext(const zzTreeSetIterator *it) {
+    return it && it->state == ZZ_ITER_VALID && it->stackSize > 0;
+}

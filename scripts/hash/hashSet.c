@@ -359,3 +359,81 @@ zzOpResult zzHashSetDifference(const zzHashSet *s1, const zzHashSet *s2, zzHashS
 
     return ZZ_OK();
 }
+/**
+ * @brief Initializes an iterator for the HashSet.
+ *
+ * This function initializes an iterator to traverse the HashSet.
+ * The iteration order is not guaranteed to be consistent between
+ * different runs or after set modifications.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] s Pointer to the HashSet to iterate over
+ */
+void zzHashSetIteratorInit(zzHashSetIterator *it, const zzHashSet *s) {
+    if (!it || !s) return;
+    
+    it->set = s;
+    it->bucketIndex = 0;
+    it->currentNode = NULL;
+    it->state = ZZ_ITER_END;
+    
+    // Find first non-empty bucket
+    for (size_t i = 0; i < s->capacity; i++) {
+        if (s->buckets[i] != NULL) {
+            it->bucketIndex = i;
+            it->currentNode = s->buckets[i];
+            it->state = ZZ_ITER_VALID;
+            break;
+        }
+    }
+}
+
+/**
+ * @brief Advances the iterator to the next key.
+ *
+ * This function moves the iterator to the next key in the HashSet
+ * and copies the current key to the output buffer. Returns false when
+ * the iterator reaches the end of the set.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] keyOut Pointer to a buffer where the current key will be copied
+ * @return true if a key was retrieved, false if the iterator reached the end
+ */
+bool zzHashSetIteratorNext(zzHashSetIterator *it, void *keyOut) {
+    if (!it || !keyOut || it->state != ZZ_ITER_VALID || !it->currentNode) return false;
+    
+    // Copy current key
+    memcpy(keyOut, it->currentNode->key, it->set->keySize);
+    
+    // Move to next node
+    it->currentNode = it->currentNode->next;
+    
+    // If no more nodes in current bucket, find next non-empty bucket
+    if (!it->currentNode) {
+        it->bucketIndex++;
+        while (it->bucketIndex < it->set->capacity && !it->set->buckets[it->bucketIndex]) {
+            it->bucketIndex++;
+        }
+        
+        if (it->bucketIndex < it->set->capacity) {
+            it->currentNode = it->set->buckets[it->bucketIndex];
+        } else {
+            it->state = ZZ_ITER_END;
+        }
+    }
+    
+    return true;
+}
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another key
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzHashSetIteratorHasNext(const zzHashSetIterator *it) {
+    return it && it->state == ZZ_ITER_VALID && it->currentNode != NULL;
+}

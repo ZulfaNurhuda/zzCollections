@@ -176,3 +176,58 @@ zzOpResult zzLinkedHashSetGetLast(const zzLinkedHashSet *lhs, void *keyOut) {
     memcpy(keyOut, lhs->tail->key, lhs->keySize);
     return ZZ_OK();
 }
+/**
+ * @brief Initializes an iterator for the LinkedHashSet.
+ *
+ * This function initializes an iterator to traverse the LinkedHashSet in insertion order.
+ * The iterator will visit keys in the order they were inserted.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] lhs Pointer to the LinkedHashSet to iterate over
+ */
+void zzLinkedHashSetIteratorInit(zzLinkedHashSetIterator *it, const zzLinkedHashSet *lhs) {
+    if (!it || !lhs) return;
+    
+    it->set = lhs;
+    it->current = lhs->head;
+    it->state = (lhs->head != NULL) ? ZZ_ITER_VALID : ZZ_ITER_END;
+}
+
+/**
+ * @brief Advances the iterator to the next key.
+ *
+ * This function moves the iterator to the next key in insertion order
+ * and copies the current key to the output buffer. Returns false when
+ * the iterator reaches the end of the set.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] keyOut Pointer to a buffer where the current key will be copied
+ * @return true if a key was retrieved, false if the iterator reached the end
+ */
+bool zzLinkedHashSetIteratorNext(zzLinkedHashSetIterator *it, void *keyOut) {
+    if (!it || !keyOut || it->state != ZZ_ITER_VALID || !it->current) return false;
+    
+    // Copy current key
+    memcpy(keyOut, it->current->key, it->set->keySize);
+    
+    // Move to next node in insertion order
+    it->current = it->current->next;
+    if (!it->current) {
+        it->state = ZZ_ITER_END;
+    }
+    
+    return true;
+}
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another key
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzLinkedHashSetIteratorHasNext(const zzLinkedHashSetIterator *it) {
+    return it && it->state == ZZ_ITER_VALID && it->current != NULL;
+}

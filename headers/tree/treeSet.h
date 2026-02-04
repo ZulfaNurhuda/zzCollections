@@ -15,6 +15,7 @@
 #include "types.h"
 #include "utils.h"
 #include "result.h"
+#include "iterator.h"
 
 /**
  * @brief Structure representing a node in the red-black tree.
@@ -44,6 +45,20 @@ typedef struct zzTreeSet {
     zzCompareFn compareFn;  /**< Function to compare keys for ordering */
     zzFreeFn keyFree;       /**< Function to free key memory, or NULL if not needed */
 } zzTreeSet;
+
+/**
+ * @brief Structure representing an iterator for TreeSet.
+ *
+ * This structure provides in-order iteration through a TreeSet,
+ * maintaining a stack of nodes to traverse the tree in sorted order.
+ */
+typedef struct zzTreeSetIterator {
+    const zzTreeSet *set;           /**< Pointer to the TreeSet being iterated */
+    TreeSetNode **stack;            /**< Stack of nodes for in-order traversal */
+    size_t stackSize;               /**< Current size of the stack */
+    size_t stackCapacity;           /**< Maximum capacity of the stack */
+    zzIteratorState state;          /**< Current state of the iterator */
+} zzTreeSetIterator;
 
 /**
  * @brief Initializes a new TreeSet with the specified key size.
@@ -144,5 +159,52 @@ zzOpResult zzTreeSetGetMin(const zzTreeSet *ts, void *keyOut);
  * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
  */
 zzOpResult zzTreeSetGetMax(const zzTreeSet *ts, void *keyOut);
+
+/**
+ * @brief Initializes an iterator for the TreeSet.
+ *
+ * This function initializes an iterator to traverse the TreeSet in sorted order
+ * (in-order traversal). The iterator will visit keys from smallest to largest
+ * according to the comparison function.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] ts Pointer to the TreeSet to iterate over
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzTreeSetIteratorInit(zzTreeSetIterator *it, const zzTreeSet *ts);
+
+/**
+ * @brief Frees resources associated with the TreeSet iterator.
+ *
+ * This function releases the memory used by the iterator's internal stack.
+ * The iterator should not be used after calling this function.
+ *
+ * @param[in,out] it Pointer to the iterator to free
+ */
+void zzTreeSetIteratorFree(zzTreeSetIterator *it);
+
+/**
+ * @brief Advances the iterator to the next key.
+ *
+ * This function moves the iterator to the next key in sorted order
+ * and copies the current key to the output buffer. Returns false when
+ * the iterator reaches the end of the set.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] keyOut Pointer to a buffer where the current key will be copied
+ * @return true if a key was retrieved, false if the iterator reached the end
+ */
+bool zzTreeSetIteratorNext(zzTreeSetIterator *it, void *keyOut);
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another key
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzTreeSetIteratorHasNext(const zzTreeSetIterator *it);
 
 #endif

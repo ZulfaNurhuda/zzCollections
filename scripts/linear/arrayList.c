@@ -268,3 +268,64 @@ zzOpResult zzArrayListIndexOf(const zzArrayList *al, const void *elem, zzCompare
     }
     return ZZ_ERR("Element not found");
 }
+
+/**
+ * @brief Initializes an iterator for the ArrayList.
+ *
+ * This function initializes an iterator to traverse the ArrayList from
+ * the beginning to the end. The iterator will be positioned at the first
+ * element if the list is not empty.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] al Pointer to the ArrayList to iterate over
+ */
+void zzArrayListIteratorInit(zzArrayListIterator *it, const zzArrayList *al) {
+    if (!it || !al) return;
+    
+    it->list = al;
+    it->index = 0;
+    it->state = (al->size > 0) ? ZZ_ITER_VALID : ZZ_ITER_END;
+}
+
+/**
+ * @brief Advances the iterator to the next element.
+ *
+ * This function moves the iterator to the next element in the ArrayList
+ * and copies the current element to the output buffer. Returns false when
+ * the iterator reaches the end of the list.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] valueOut Pointer to a buffer where the current element will be copied
+ * @return true if an element was retrieved, false if the iterator reached the end
+ */
+bool zzArrayListIteratorNext(zzArrayListIterator *it, void *valueOut) {
+    if (!it || !valueOut || it->state != ZZ_ITER_VALID) return false;
+    
+    if (it->index >= it->list->size) {
+        it->state = ZZ_ITER_END;
+        return false;
+    }
+    
+    void *elem = (char*)it->list->buffer + it->index * it->list->elSize;
+    memcpy(valueOut, elem, it->list->elSize);
+    
+    it->index++;
+    if (it->index >= it->list->size) {
+        it->state = ZZ_ITER_END;
+    }
+    
+    return true;
+}
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another element
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzArrayListIteratorHasNext(const zzArrayListIterator *it) {
+    return it && it->state == ZZ_ITER_VALID && it->index < it->list->size;
+}

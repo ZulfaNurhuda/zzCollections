@@ -334,3 +334,110 @@ zzOpResult zzTreeMapGetMax(const zzTreeMap *tm, void *keyOut, void *valueOut) {
     if (valueOut) memcpy(valueOut, VAL_PTR(max, tm->keySize), tm->valueSize);
     return ZZ_OK();
 }
+/**
+ * @brief Initializes an iterator for the TreeMap.
+ *
+ * This function initializes an iterator to traverse the TreeMap in sorted order
+ * (in-order traversal). The iterator will visit key-value pairs from smallest
+ * to largest key according to the comparison function.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] tm Pointer to the TreeMap to iterate over
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzTreeMapIteratorInit(zzTreeMapIterator *it, const zzTreeMap *tm) {
+    if (!it) return ZZ_ERR("Iterator pointer is NULL");
+    if (!tm) return ZZ_ERR("TreeMap pointer is NULL");
+    
+    it->map = tm;
+    it->stackSize = 0;
+    it->stackCapacity = tm->size + 1; // +1 to handle edge cases
+    it->state = ZZ_ITER_END;
+    
+    if (it->stackCapacity == 0) it->stackCapacity = 1;
+    
+    it->stack = malloc(sizeof(TreeMapNode*) * it->stackCapacity);
+    if (!it->stack) return ZZ_ERR("Failed to allocate iterator stack");
+    
+    // Push all left nodes starting from root
+    TreeMapNode *current = tm->root;
+    while (current) {
+        it->stack[it->stackSize++] = current;
+        current = current->left;
+    }
+    
+    if (it->stackSize > 0) {
+        it->state = ZZ_ITER_VALID;
+    }
+    
+    return ZZ_OK();
+}
+
+/**
+ * @brief Frees resources associated with the TreeMap iterator.
+ *
+ * This function releases the memory used by the iterator's internal stack.
+ * The iterator should not be used after calling this function.
+ *
+ * @param[in,out] it Pointer to the iterator to free
+ */
+void zzTreeMapIteratorFree(zzTreeMapIterator *it) {
+    if (!it) return;
+    
+    if (it->stack) {
+        free(it->stack);
+        it->stack = NULL;
+    }
+    it->stackSize = 0;
+    it->stackCapacity = 0;
+    it->state = ZZ_ITER_END;
+}
+
+/**
+ * @brief Advances the iterator to the next key-value pair.
+ *
+ * This function moves the iterator to the next key-value pair in sorted order
+ * and copies the current key and value to the output buffers. Returns false when
+ * the iterator reaches the end of the map.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] keyOut Pointer to a buffer where the current key will be copied
+ * @param[out] valueOut Pointer to a buffer where the current value will be copied
+ * @return true if a key-value pair was retrieved, false if the iterator reached the end
+ */
+bool zzTreeMapIteratorNext(zzTreeMapIterator *it, void *keyOut, void *valueOut) {
+    if (!it || !keyOut || !valueOut || it->state != ZZ_ITER_VALID || it->stackSize == 0) return false;
+    
+    // Pop the top node
+    TreeMapNode *current = it->stack[--it->stackSize];
+    
+    // Copy key and value
+    memcpy(keyOut, current->data, it->map->keySize);
+    memcpy(valueOut, (char*)current->data + it->map->keySize, it->map->valueSize);
+    
+    // Push all left nodes of the right subtree
+    current = current->right;
+    while (current) {
+        it->stack[it->stackSize++] = current;
+        current = current->left;
+    }
+    
+    if (it->stackSize == 0) {
+        it->state = ZZ_ITER_END;
+    }
+    
+    return true;
+}
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another key-value pair
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzTreeMapIteratorHasNext(const zzTreeMapIterator *it) {
+    return it && it->state == ZZ_ITER_VALID && it->stackSize > 0;
+}

@@ -35,6 +35,9 @@ Welcome to **zzCollections**! This comprehensive library brings you **15 product
 - **Zero-Malloc Convention** 🎯
   All getter functions return `bool` with output parameters – absolutely no hidden memory allocations! You're always in control.
 
+- **Universal Iterator Support** 🔄
+  Every collection comes with its own iterator for seamless traversal! Consistent API across all 15 data structures with `zzIteratorInit`, `zzIteratorNext`, and `zzIteratorHasNext` patterns.
+
 - **Production-Ready Algorithms** 🏆
   Implements industry-standard algorithms: Red-Black trees for balanced operations, Min-heap for priority queues, Circular buffers with automatic overwrite, and efficient Hash tables with collision handling.
 
@@ -193,7 +196,7 @@ for (int i = 0; i < 5; i++) {
 
 // Iterate in sorted order
 zzTreeMapIterator it;
-zzTreeMapIteratorInit(&it, &tree);
+if (zzTreeMapIteratorInit(&it, &tree).status == ZZ_SUCCESS) {
 int k;
 char* v;
 while (zzTreeMapIteratorNext(&it, &k, &v)) {
@@ -203,6 +206,47 @@ while (zzTreeMapIteratorNext(&it, &k, &v)) {
 
 // Cleanup
 zzTreeMapFree(&tree);
+```
+
+#### **Universal Iterator Support - Traverse Any Collection! 🔄**
+
+```c
+#include "arrayList.h"
+
+// Create and populate an ArrayList
+zzArrayList list;
+zzArrayListInit(&list, sizeof(int), 10, NULL);
+
+int values[] = {10, 20, 30, 40, 50};
+for (int i = 0; i < 5; i++) {
+    zzArrayListAdd(&list, &values[i]);
+}
+
+// Use iterator to traverse the list
+zzArrayListIterator it;
+zzArrayListIteratorInit(&it, &list);
+
+int value;
+printf("ArrayList contents: ");
+while (zzArrayListIteratorNext(&it, &value)) {
+    printf("%d ", value);  // Prints: 10 20 30 40 50
+}
+printf("\n");
+
+// Cleanup
+zzArrayListFree(&list);
+```
+
+**Every collection has the same iterator pattern:**
+- `zzCollectionIteratorInit(&iterator, &collection)` - Initialize iterator
+- `zzCollectionIteratorNext(&iterator, &output)` - Get next element
+- `zzCollectionIteratorHasNext(&iterator)` - Check if more elements exist
+
+**Supported Collections with Iterators:**
+- **Linear**: ArrayList, ArrayDeque, LinkedList
+- **Hash**: HashMap, HashSet, LinkedHashMap, LinkedHashSet  
+- **Tree**: TreeMap (sorted order), TreeSet (sorted order)
+- **Specialized**: PriorityQueue (heap order), CircularBuffer (oldest to newest)
 ```
 
 ---

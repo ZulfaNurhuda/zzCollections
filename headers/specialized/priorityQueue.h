@@ -15,6 +15,7 @@
 #include "types.h"
 #include "utils.h"
 #include "result.h"
+#include "iterator.h"
 
 /**
  * @brief Structure representing a priority queue.
@@ -31,6 +32,18 @@ typedef struct zzPriorityQueue {
     zzCompareFn compareFn; /**< Function to compare elements for priority ordering */
     zzFreeFn elemFree;  /**< Function to free individual elements, or NULL if not needed */
 } zzPriorityQueue;
+
+/**
+ * @brief Structure representing an iterator for PriorityQueue.
+ *
+ * This structure provides iteration through a PriorityQueue in heap order.
+ * Note: The iteration order is not guaranteed to be in priority order.
+ */
+typedef struct zzPriorityQueueIterator {
+    const zzPriorityQueue *queue; /**< Pointer to the PriorityQueue being iterated */
+    size_t index;                 /**< Current index in the heap array */
+    zzIteratorState state;        /**< Current state of the iterator */
+} zzPriorityQueueIterator;
 
 /**
  * @brief Initializes a new PriorityQueue with the specified element size and capacity.
@@ -109,5 +122,41 @@ zzOpResult zzPriorityQueuePeek(const zzPriorityQueue *pq, void *out);
  * @param[in,out] pq Pointer to the PriorityQueue to clear
  */
 void zzPriorityQueueClear(zzPriorityQueue *pq);
+
+/**
+ * @brief Initializes an iterator for the PriorityQueue.
+ *
+ * This function initializes an iterator to traverse the PriorityQueue.
+ * Note: The iteration order follows the internal heap structure and is
+ * not guaranteed to be in priority order.
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] pq Pointer to the PriorityQueue to iterate over
+ */
+void zzPriorityQueueIteratorInit(zzPriorityQueueIterator *it, const zzPriorityQueue *pq);
+
+/**
+ * @brief Advances the iterator to the next element.
+ *
+ * This function moves the iterator to the next element in the PriorityQueue
+ * and copies the current element to the output buffer. Returns false when
+ * the iterator reaches the end of the queue.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] valueOut Pointer to a buffer where the current element will be copied
+ * @return true if an element was retrieved, false if the iterator reached the end
+ */
+bool zzPriorityQueueIteratorNext(zzPriorityQueueIterator *it, void *valueOut);
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another element
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzPriorityQueueIteratorHasNext(const zzPriorityQueueIterator *it);
 
 #endif

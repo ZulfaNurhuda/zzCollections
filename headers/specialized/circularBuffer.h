@@ -15,6 +15,7 @@
 #include "types.h"
 #include "utils.h"
 #include "result.h"
+#include "iterator.h"
 
 /**
  * @brief Structure representing a circular buffer.
@@ -32,6 +33,18 @@ typedef struct zzCircularBuffer {
     size_t elSize;     /**< Size in bytes of each individual element */
     zzFreeFn elemFree; /**< Function to free individual elements, or NULL if not needed */
 } zzCircularBuffer;
+
+/**
+ * @brief Structure representing an iterator for CircularBuffer.
+ *
+ * This structure provides iteration through a CircularBuffer from
+ * the oldest element to the newest element.
+ */
+typedef struct zzCircularBufferIterator {
+    const zzCircularBuffer *buffer; /**< Pointer to the CircularBuffer being iterated */
+    size_t index;                   /**< Current logical index (0 to size-1) */
+    zzIteratorState state;          /**< Current state of the iterator */
+} zzCircularBufferIterator;
 
 /**
  * @brief Initializes a new CircularBuffer with the specified element size and capacity.
@@ -133,5 +146,40 @@ zzOpResult zzCircularBufferPeekBack(const zzCircularBuffer *cb, void *out);
  * @param[in,out] cb Pointer to the CircularBuffer to clear
  */
 void zzCircularBufferClear(zzCircularBuffer *cb);
+
+/**
+ * @brief Initializes an iterator for the CircularBuffer.
+ *
+ * This function initializes an iterator to traverse the CircularBuffer from
+ * the oldest element (head) to the newest element (tail).
+ *
+ * @param[out] it Pointer to the iterator structure to initialize
+ * @param[in] cb Pointer to the CircularBuffer to iterate over
+ */
+void zzCircularBufferIteratorInit(zzCircularBufferIterator *it, const zzCircularBuffer *cb);
+
+/**
+ * @brief Advances the iterator to the next element.
+ *
+ * This function moves the iterator to the next element in the CircularBuffer
+ * and copies the current element to the output buffer. Returns false when
+ * the iterator reaches the end of the buffer.
+ *
+ * @param[in,out] it Pointer to the iterator to advance
+ * @param[out] valueOut Pointer to a buffer where the current element will be copied
+ * @return true if an element was retrieved, false if the iterator reached the end
+ */
+bool zzCircularBufferIteratorNext(zzCircularBufferIterator *it, void *valueOut);
+
+/**
+ * @brief Checks if the iterator has more elements.
+ *
+ * This function checks whether the iterator can advance to another element
+ * without actually advancing it.
+ *
+ * @param[in] it Pointer to the iterator to check
+ * @return true if there are more elements, false otherwise
+ */
+bool zzCircularBufferIteratorHasNext(const zzCircularBufferIterator *it);
 
 #endif
