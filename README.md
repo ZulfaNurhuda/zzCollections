@@ -98,7 +98,7 @@ make demo   # Build and run the demo
 make clean  # Clean build artifacts
 ```
 
-The demo showcases **all 15 data structures** with practical examples. Run it and see the magic happen! ✨
+The **collections demo** showcases **all 15 data structures** with practical examples, while the **iterators demo** demonstrates the universal iterator support across all collections. Run them and see the magic happen! ✨
 
 ---
 

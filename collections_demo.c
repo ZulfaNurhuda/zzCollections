@@ -83,6 +83,15 @@ int main() {
         }
         printf("\n   💡 Tip: Elements shifted right automatically!\n");
         
+        printf("\n   → Iterator traversal: ");
+        zzArrayListIterator it;
+        zzArrayListIteratorInit(&it, &al);
+        int value;
+        while (zzArrayListIteratorNext(&it, &value)) {
+            printf("%d ", value);
+        }
+        printf("\n   💡 Tip: Universal iterator pattern works on all collections!\n");
+        
         zzArrayListFree(&al);
     }
     printSeparator();
@@ -189,6 +198,15 @@ int main() {
         zzHashMapGet(&hm, &(int){2}, &value);
         printf("   ✓ New value: %d\n", value);
         printf("   💡 Tip: Put() updates existing keys automatically!\n");
+        
+        printf("\n   → Iterator traversal: ");
+        zzHashMapIterator it;
+        zzHashMapIteratorInit(&it, &hm);
+        int k, v;
+        while (zzHashMapIteratorNext(&it, &k, &v)) {
+            printf("(%d:%d) ", k, v);
+        }
+        printf("\n   💡 Tip: Hash order may vary, use LinkedHashMap for insertion order!\n");
         
         zzHashMapFree(&hm);
     }
@@ -306,6 +324,15 @@ int main() {
         zzTreeMapGet(&tm, &(int){3}, &val);
         printf("   → Lookup key 3 → %d\n", val);
         printf("   💡 Tip: Red-Black tree keeps everything balanced!\n");
+        
+        printf("\n   → Sorted iteration: ");
+        zzTreeMapIterator it;
+        zzTreeMapIteratorInit(&it, &tm);
+        int k2, v2;
+        while (zzTreeMapIteratorNext(&it, &k2, &v2)) {
+            printf("(%d:%d) ", k2, v2);
+        }
+        printf("\n   💡 Tip: Always iterates in sorted key order!\n");
 
         zzTreeMapFree(&tm);
     }

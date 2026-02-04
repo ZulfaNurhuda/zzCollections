@@ -15,15 +15,16 @@ INCLUDES := $(addprefix -I,$(HEADER_DIRS))
 CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -O2 -g -pipe $(INCLUDES)
 
 # Build output
-TARGET = collection_demo
+TARGET = collections_demo
 BUILD_DIR = build
 
-# Dynamically find all source files in scripts/ and demo.c
+# Dynamically find all source files in scripts/ (shared library)
 SCRIPT_SRCS := $(call rwildcard,scripts,*.c)
-SRCS := demo.c $(SCRIPT_SRCS)
+SCRIPT_OBJS := $(addprefix $(BUILD_DIR)/,$(notdir $(SCRIPT_SRCS:.c=.o)))
 
-# Create object filenames (flatten paths to build directory)
-OBJS := $(addprefix $(BUILD_DIR)/,$(notdir $(SRCS:.c=.o)))
+# Demo source file
+DEMO_MAIN := collections_demo.c
+DEMO_MAIN_OBJ := $(BUILD_DIR)/collections_demo.o
 
 # Add source directories to vpath so Make can find them
 SCRIPT_DIRS := $(sort $(dir $(SCRIPT_SRCS)))
@@ -35,23 +36,28 @@ vpath %.c $(SCRIPT_DIRS) .
 
 all: $(BUILD_DIR) $(TARGET)
 	@echo ""
-	@echo "✨ Build complete! Your executable is ready: ./$(TARGET)"
-	@echo "   Run './$(TARGET)' to see all 15 data structures in action!"
+	@echo "✨ Build complete! Your executable is ready:"
+	@echo "   ./$(TARGET) - Complete collections + iterators demo"
 	@echo ""
 
 $(BUILD_DIR):
 	@echo "📁 Creating build directory..."
 	@mkdir -p $(BUILD_DIR)
 
-$(TARGET): $(OBJS)
+# Link demo (shared objects + demo main)
+$(TARGET): $(SCRIPT_OBJS) $(DEMO_MAIN_OBJ)
 	@echo ""
-	@echo "🔗 Linking object files into executable..."
-	@TMP=$(BUILD_DIR) TEMP=$(BUILD_DIR) $(CC) $(CFLAGS) -o $@ $^
+	@echo "🔗 Linking collections demo..."
+	@$(CC) $(CFLAGS) -o $@ $^
 	@echo "✅ Successfully created $(TARGET)"
 
-# Generic pattern rule for compiling object files
-# vpath will locate the source file for us
+# Compile shared library object files
 $(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
+	@echo "🔨 Compiling $< → $(notdir $@)"
+	@$(CC) $(CFLAGS) -c $< -o $@
+
+# Compile demo main file
+$(DEMO_MAIN_OBJ): $(DEMO_MAIN) | $(BUILD_DIR)
 	@echo "🔨 Compiling $< → $(notdir $@)"
 	@$(CC) $(CFLAGS) -c $< -o $@
 
@@ -68,16 +74,6 @@ demo: $(TARGET)
 	@echo "✨ Demo completed successfully!"
 	@echo ""
 
-checkmem: $(TARGET)
-	@echo ""
-	@echo "🔍 Running memory leak detection with Valgrind..."
-	@echo "   This will check for memory leaks, invalid reads/writes, and more."
-	@echo ""
-	@valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(TARGET)
-	@echo ""
-	@echo "✅ Memory check complete!"
-	@echo ""
-
 clean:
 	@echo "🧹 Cleaning up build artifacts..."
 	@rm -rf $(BUILD_DIR) $(TARGET)
@@ -91,13 +87,12 @@ help:
 	@echo ""
 	@echo "zzCollections - Available Make Targets"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-	@echo "  make          - Build the demo executable"
-	@echo "  make demo     - Build and run the demo program"
-	@echo "  make checkmem - Run Valgrind memory leak detection"
-	@echo "  make clean    - Remove all build artifacts"
-	@echo "  make rebuild  - Clean and rebuild from scratch"
-	@echo "  make help     - Show this help message"
+	@echo "  make       - Build the demo executable"
+	@echo "  make demo  - Build and run the complete demo"
+	@echo "  make clean - Remove all build artifacts"
+	@echo "  make rebuild - Clean and rebuild from scratch"
+	@echo "  make help  - Show this help message"
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo ""
 
-.PHONY: all demo checkmem clean rebuild help
+.PHONY: all demo clean rebuild help
