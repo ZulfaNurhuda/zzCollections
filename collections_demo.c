@@ -1,10 +1,11 @@
 /**
- * @file demo.c
- * @brief Demonstration program for the zzCollections library.
+ * @file collections_demo.c
+ * @brief Comprehensive demonstration program for the zzCollections library.
  *
- * This program demonstrates the usage of all data structures provided by the
+ * This program demonstrates the usage of all 15 data structures provided by the
  * zzCollections library. It showcases how to initialize, use, and free each
- * data structure with various examples and operations.
+ * data structure with various examples and operations, including universal
+ * iterator support across all collections.
  */
 
 #include <stdio.h>

@@ -18,9 +18,7 @@ Welcome to **zzCollections**! This comprehensive library brings you **15 product
 - **📊・<a href="#performance" style="text-decoration: none;">Performance Characteristics</a>**
 - **⚙️・<a href="#requirements" style="text-decoration: none;">Requirements</a>**
 - **📖・<a href="#documentation" style="text-decoration: none;">Documentation</a>**
-- **💖・<a href="#contributing" style="text-decoration: none;">Contributing</a>**
-- **📜・<a href="#license" style="text-decoration: none;">License</a>**
-- **👋・<a href="#about" style="text-decoration: none;">About</a>**
+- **👋・<a href="#about" style="text-decoration: none;">About Me!</a>**
 
 ---
 
@@ -33,10 +31,10 @@ Welcome to **zzCollections**! This comprehensive library brings you **15 product
 ### <div id="features">**🎯・Features (What Makes Us Special! ✨)**</div>
 
 - **Zero-Malloc Convention** 🎯
-  All getter functions return `bool` with output parameters – absolutely no hidden memory allocations! You're always in control.
+  All getter functions return `zzOpResult` with output parameters – absolutely no hidden memory allocations! You're always in control.
 
 - **Universal Iterator Support** 🔄
-  Every collection comes with its own iterator for seamless traversal! Consistent API across all 15 data structures with `zzIteratorInit`, `zzIteratorNext`, and `zzIteratorHasNext` patterns.
+  Every collection comes with its own iterator for seamless traversal! Iterator functions return `bool` for simple while loops, with consistent API across all 15 data structures.
 
 - **Production-Ready Algorithms** 🏆
   Implements industry-standard algorithms: Red-Black trees for balanced operations, Min-heap for priority queues, Circular buffers with automatic overwrite, and efficient Hash tables with collision handling.
@@ -94,11 +92,11 @@ Ready to see zzCollections in action? Building is super easy!
 
 ```bash
 make        # Build the demo executable
-make demo   # Build and run the demo
+make demo   # Build and run the complete demo
 make clean  # Clean build artifacts
 ```
 
-The **collections demo** showcases **all 15 data structures** with practical examples, while the **iterators demo** demonstrates the universal iterator support across all collections. Run them and see the magic happen! ✨
+The **collections demo** showcases **all 15 data structures** with practical examples and demonstrates the universal iterator support across all collections. Run it and see the magic happen! ✨
 
 ---
 
@@ -119,8 +117,17 @@ zzArrayListAdd(&list, &value);
 
 // Get elements (zero-malloc convention!)
 int retrieved;
-if (zzArrayListGet(&list, 0, &retrieved)) {
+zzOpResult result = zzArrayListGet(&list, 0, &retrieved);
+if (ZZ_IS_OK(result)) {
     printf("Got value: %d\n", retrieved);  // Prints: Got value: 42
+}
+
+// Universal iterator support
+zzArrayListIterator it;
+zzArrayListIteratorInit(&it, &list);
+int val;
+while (zzArrayListIteratorNext(&it, &val)) {
+    printf("%d ", val);  // Traverse all elements
 }
 
 // Cleanup (always remember!)
@@ -144,37 +151,22 @@ zzHashMapPut(&map, &key, &value);
 
 // Retrieve values
 char* result;
-if (zzHashMapGet(&map, &key, &result)) {
+zzOpResult opResult = zzHashMapGet(&map, &key, &result);
+if (ZZ_IS_OK(opResult)) {
     printf("Found: %s\n", result);  // Prints: Found: Hello, zzCollections!
+}
+
+// Iterator traversal (hash order)
+zzHashMapIterator it;
+zzHashMapIteratorInit(&it, &map);
+int k;
+char* v;
+while (zzHashMapIteratorNext(&it, &k, &v)) {
+    printf("(%d:%s) ", k, v);
 }
 
 // Cleanup
 zzHashMapFree(&map);
-```
-
-#### **PriorityQueue - Always Get the Minimum**
-
-```c
-#include "priorityQueue.h"
-
-// Initialize with comparator function
-zzPriorityQueue pq;
-zzPriorityQueueInit(&pq, sizeof(int), 16, intCmp, NULL);
-
-// Add elements in any order
-int values[] = {5, 3, 8, 1, 9};
-for (int i = 0; i < 5; i++) {
-    zzPriorityQueuePush(&pq, &values[i]);
-}
-
-// Pop gets the smallest element!
-int min;
-if (zzPriorityQueuePop(&pq, &min)) {
-    printf("Minimum value: %d\n", min);  // Prints: Minimum value: 1
-}
-
-// Cleanup
-zzPriorityQueueFree(&pq);
 ```
 
 #### **TreeMap - Sorted Key-Value Pairs**
@@ -196,12 +188,14 @@ for (int i = 0; i < 5; i++) {
 
 // Iterate in sorted order
 zzTreeMapIterator it;
-if (zzTreeMapIteratorInit(&it, &tree).status == ZZ_SUCCESS) {
-int k;
-char* v;
-while (zzTreeMapIteratorNext(&it, &k, &v)) {
-    printf("%d: %s\n", k, v);
-    // Prints in sorted order: 10, 20, 30, 40, 50!
+zzOpResult initResult = zzTreeMapIteratorInit(&it, &tree);
+if (ZZ_IS_OK(initResult)) {
+    int k;
+    char* v;
+    while (zzTreeMapIteratorNext(&it, &k, &v)) {
+        printf("%d: %s\n", k, v);
+        // Prints in sorted order: 10, 20, 30, 40, 50!
+    }
 }
 
 // Cleanup
@@ -247,7 +241,7 @@ zzArrayListFree(&list);
 - **Hash**: HashMap, HashSet, LinkedHashMap, LinkedHashSet  
 - **Tree**: TreeMap (sorted order), TreeSet (sorted order)
 - **Specialized**: PriorityQueue (heap order), CircularBuffer (oldest to newest)
-```
+- **Wrappers**: Stack and Queue wrappers use their underlying collection's iterators
 
 ---
 
@@ -268,7 +262,7 @@ zzCollections/
 │   └── wrapper/         # Stack and Queue wrappers
 ├── scripts/             # Implementation files (.c)
 │   └── [same structure as headers]
-├── demo.c               # Complete demo of all 15 structures
+├── collections_demo.c   # Complete demo of all 15 structures + iterators
 ├── Makefile             # Build system
 └── README.md            # You are here! 👋
 ```
@@ -338,35 +332,13 @@ Each header file in the `headers/` directory contains comprehensive documentatio
 - **Usage examples** - Quick code snippets to get you started
 - **Complexity guarantees** - Big-O notation for performance
 
-Want to see everything in action? Check out `demo.c` for complete working examples of **all 15 data structures**! It's like a interactive tutorial. 🎓
+Want to see everything in action? Check out `collections_demo.c` for complete working examples of **all 15 data structures** plus universal iterator support! It's like an interactive tutorial. 🎓
 
 ---
 
-### <div id="contributing">**💖・Contributing (Join the Adventure! 🎉)**</div>
+### <div id="about-me">**👋・About Me!**</div>
 
-Found a bug? Have an awesome idea for a new feature? Want to improve the documentation? We'd love your contributions! Feel free to:
+**Muhammad Zulfa Fauzan Nurhuda** (18224064)  
+Just a regular human being who happens to be studying STI at ITB! 😄 Always excited to learn and build cool stuff! 🚀
 
-- Open an issue for bugs or feature requests
-- Submit a pull request with improvements
-- Improve documentation or add examples
-- Share your use cases and success stories!
-
-Every contribution makes zzCollections better for everyone. Let's build something amazing together! 🚀
-
----
-
-### <div id="license">**📜・License (The Legal Stuff! 🤝)**</div>
-
-This project is open-source and distributed under the **MIT License**. Feel free to use it in your personal or commercial projects, modify it, share it – whatever you need! Check out the `LICENSE` file for all the details. Happy coding! 💻
-
----
-
-### <div id="about">**👋・About**</div>
-
-**Muhammad Zulfa Fauzan Nurhuda**
-Just a passionate developer who loves building robust, production-ready tools! 🚀
-Studying at Bandung Institute of Technology (ITB) 🎓
-
----
-
-**Built with ❤️ using C11 • Zero-malloc convention • Production-ready algorithms**
+<img src="https://i.imgur.com/Zp8msEG.png" alt="Logo ITB" height="90" style="border-radius: 10px">
