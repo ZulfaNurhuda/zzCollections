@@ -50,14 +50,12 @@ typedef struct zzTreeSet {
  * @brief Structure representing an iterator for TreeSet.
  *
  * This structure provides in-order iteration through a TreeSet,
- * maintaining a stack of nodes to traverse the tree in sorted order.
+ * using parent pointers to traverse the tree in sorted order.
  */
 typedef struct zzTreeSetIterator {
     zzTreeSet *set;                 /**< Pointer to the TreeSet being iterated */
-    TreeSetNode **stack;            /**< Stack of nodes for in-order traversal */
+    TreeSetNode *currentNode;       /**< Current node in the iteration */
     TreeSetNode *lastReturned;      /**< Pointer to the last returned node */
-    size_t stackSize;               /**< Current size of the stack */
-    size_t stackCapacity;           /**< Maximum capacity of the stack */
     zzIteratorState state;          /**< Current state of the iterator */
 } zzTreeSetIterator;
 
@@ -170,19 +168,8 @@ zzOpResult zzTreeSetGetMax(const zzTreeSet *ts, void *keyOut);
  *
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] ts Pointer to the TreeSet to iterate over
- * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
  */
-zzOpResult zzTreeSetIteratorInit(zzTreeSetIterator *it, zzTreeSet *ts);
-
-/**
- * @brief Frees resources associated with the TreeSet iterator.
- *
- * This function releases the memory used by the iterator's internal stack.
- * The iterator should not be used after calling this function.
- *
- * @param[in,out] it Pointer to the iterator to free
- */
-void zzTreeSetIteratorFree(zzTreeSetIterator *it);
+void zzTreeSetIteratorInit(zzTreeSetIterator *it, zzTreeSet *ts);
 
 /**
  * @brief Advances the iterator to the next key.

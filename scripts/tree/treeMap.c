@@ -448,55 +448,24 @@ zzOpResult zzTreeMapGetMax(const zzTreeMap *tm, void *keyOut, void *valueOut) {
  *
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] tm Pointer to the TreeMap to iterate over
- * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
  */
-zzOpResult zzTreeMapIteratorInit(zzTreeMapIterator *it, zzTreeMap *tm) {
-    if (!it) return ZZ_ERR("Iterator pointer is NULL");
-    if (!tm) return ZZ_ERR("TreeMap pointer is NULL");
-    
+void zzTreeMapIteratorInit(zzTreeMapIterator *it, zzTreeMap *tm) {
+    if (!it || !tm) return;
+
     it->map = tm;
-    it->stackSize = 0;
     it->lastReturned = NULL;
-    it->stackCapacity = tm->size + 1;
-    it->state = ZZ_ITER_END;
-    
-    if (it->stackCapacity == 0) it->stackCapacity = 1;
-    
-    it->stack = malloc(sizeof(TreeMapNode*) * it->stackCapacity);
-    if (!it->stack) return ZZ_ERR("Failed to allocate iterator stack");
-    
-    TreeMapNode *current = tm->root;
-    while (current) {
-        it->stack[it->stackSize++] = current;
-        current = current->left;
+
+    // Find the minimum node (leftmost node) to start iteration
+    it->currentNode = tm->root;
+    if (it->currentNode) {
+        while (it->currentNode->left) {
+            it->currentNode = it->currentNode->left;
+        }
     }
-    
-    if (it->stackSize > 0) {
-        it->state = ZZ_ITER_VALID;
-    }
-    
-    return ZZ_OK();
+
+    it->state = it->currentNode ? ZZ_ITER_VALID : ZZ_ITER_END;
 }
 
-/**
- * @brief Frees resources associated with the TreeMap iterator.
- *
- * This function releases the memory used by the iterator's internal stack.
- * The iterator should not be used after calling this function.
- *
- * @param[in,out] it Pointer to the iterator to free
- */
-void zzTreeMapIteratorFree(zzTreeMapIterator *it) {
-    if (!it) return;
-    
-    if (it->stack) {
-        free(it->stack);
-        it->stack = NULL;
-    }
-    it->stackSize = 0;
-    it->stackCapacity = 0;
-    it->state = ZZ_ITER_END;
-}
 
 /**
  * @brief Advances the iterator to the next key-value pair.
@@ -511,20 +480,36 @@ void zzTreeMapIteratorFree(zzTreeMapIterator *it) {
  * @return true if a key-value pair was retrieved, false if the iterator reached the end
  */
 bool zzTreeMapIteratorNext(zzTreeMapIterator *it, void *keyOut, void *valueOut) {
-    if (!it || !keyOut || !valueOut || it->state != ZZ_ITER_VALID || it->stackSize == 0) return false;
-    
-    TreeMapNode *current = it->stack[--it->stackSize];
+    if (!it || !keyOut || !valueOut || it->state != ZZ_ITER_VALID || !it->currentNode) return false;
+
+    TreeMapNode *current = it->currentNode;
     it->lastReturned = current;
-    
+
     memcpy(keyOut, current->data, it->map->keySize);
     memcpy(valueOut, (char*)current->data + it->map->keySize, it->map->valueSize);
-    
-    current = current->right;
-    while (current) {
-        it->stack[it->stackSize++] = current;
-        current = current->left;
+
+    // Find the in-order successor
+    if (current->right) {
+        // If current node has a right child, go to right child, then all the way left
+        current = current->right;
+        while (current->left) {
+            current = current->left;
+        }
+        it->currentNode = current;
+    } else {
+        // If current node has no right child, go up to parent until we come from a left child
+        TreeMapNode *parent = current->parent;
+        while (parent && current == parent->right) {
+            current = parent;
+            parent = parent->parent;
+        }
+        it->currentNode = parent;
     }
-    
+
+    if (!it->currentNode) {
+        it->state = ZZ_ITER_END;
+    }
+
     return true;
 }
 
@@ -538,7 +523,7 @@ bool zzTreeMapIteratorNext(zzTreeMapIterator *it, void *keyOut, void *valueOut) 
  * @return true if there are more elements, false otherwise
  */
 bool zzTreeMapIteratorHasNext(const zzTreeMapIterator *it) {
-    return it && it->state == ZZ_ITER_VALID && it->stackSize > 0;
+    return it && it->state == ZZ_ITER_VALID && it->currentNode != NULL;
 }
 
 /**
@@ -546,7 +531,7 @@ bool zzTreeMapIteratorHasNext(const zzTreeMapIterator *it) {
  *
  * This function removes the key-value pair that was most recently returned by
  * zzTreeMapIteratorNext. It safely handles the tree restructuring by rebuilding
- * the iterator stack to the correct next element.
+ * the iterator position to the correct next element.
  *
  * @param[in,out] it Pointer to the iterator
  * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
@@ -555,14 +540,15 @@ zzOpResult zzTreeMapIteratorRemove(zzTreeMapIterator *it) {
     if (!it || it->state != ZZ_ITER_VALID) return ZZ_ERR("Invalid iterator state");
     if (!it->lastReturned) return ZZ_ERR("No element to remove");
 
+    // Save the key of the next node if there is one
     void *nextKey = NULL;
-    if (it->stackSize > 0) {
-        TreeMapNode *next = it->stack[it->stackSize - 1];
+    if (it->currentNode) {
         nextKey = malloc(it->map->keySize);
         if (!nextKey) return ZZ_ERR("Memory allocation failed");
-        memcpy(nextKey, next->data, it->map->keySize);
+        memcpy(nextKey, it->currentNode->data, it->map->keySize);
     }
 
+    // Save the key of the node to be removed
     void *removeKey = malloc(it->map->keySize);
     if (!removeKey) {
         if (nextKey) free(nextKey);
@@ -581,31 +567,29 @@ zzOpResult zzTreeMapIteratorRemove(zzTreeMapIterator *it) {
     it->lastReturned = NULL;
 
     if (nextKey) {
-        it->stackSize = 0;
-        
+        // Find the node corresponding to the saved next key
         TreeMapNode *cur = it->map->root;
         while (cur) {
             int cmp = it->map->compareFn(nextKey, cur->data);
             if (cmp == 0) {
-                it->stack[it->stackSize++] = cur;
+                it->currentNode = cur;
                 break;
             } else if (cmp < 0) {
-                it->stack[it->stackSize++] = cur;
                 cur = cur->left;
             } else {
                 cur = cur->right;
             }
         }
-        
-        if (it->stackSize > 0) {
+
+        if (it->currentNode) {
              it->state = ZZ_ITER_VALID;
         } else {
              it->state = ZZ_ITER_END;
         }
-        
+
         free(nextKey);
     } else {
-        it->stackSize = 0;
+        it->currentNode = NULL;
         it->state = ZZ_ITER_END;
     }
 

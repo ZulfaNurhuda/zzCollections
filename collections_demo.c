@@ -662,9 +662,6 @@ int main() {
         }
         printTip("Iterator remove maintains sorted order property!");
 
-        zzTreeMapIteratorFree(&it);
-        zzTreeMapIteratorFree(&it2);
-        zzTreeMapIteratorFree(&it3);
         zzTreeMapFree(&tm);
     }
     printSeparator();
@@ -732,9 +729,6 @@ int main() {
         }
         printTip("Iterator remove maintains sorted order property!");
 
-        zzTreeSetIteratorFree(&it);
-        zzTreeSetIteratorFree(&it2);
-        zzTreeSetIteratorFree(&it3);
         zzTreeSetFree(&ts);
     }
     printSeparator();

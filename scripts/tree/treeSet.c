@@ -397,55 +397,24 @@ zzOpResult zzTreeSetGetMax(const zzTreeSet *ts, void *keyOut) {
  *
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] ts Pointer to the TreeSet to iterate over
- * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
  */
-zzOpResult zzTreeSetIteratorInit(zzTreeSetIterator *it, zzTreeSet *ts) {
-    if (!it) return ZZ_ERR("Iterator pointer is NULL");
-    if (!ts) return ZZ_ERR("TreeSet pointer is NULL");
-    
+void zzTreeSetIteratorInit(zzTreeSetIterator *it, zzTreeSet *ts) {
+    if (!it || !ts) return;
+
     it->set = ts;
-    it->stackSize = 0;
     it->lastReturned = NULL;
-    it->stackCapacity = ts->size + 1;
-    it->state = ZZ_ITER_END;
-    
-    if (it->stackCapacity == 0) it->stackCapacity = 1;
-    
-    it->stack = malloc(sizeof(TreeSetNode*) * it->stackCapacity);
-    if (!it->stack) return ZZ_ERR("Failed to allocate iterator stack");
-    
-    TreeSetNode *current = ts->root;
-    while (current) {
-        it->stack[it->stackSize++] = current;
-        current = current->left;
+
+    // Find the minimum node (leftmost node) to start iteration
+    it->currentNode = ts->root;
+    if (it->currentNode) {
+        while (it->currentNode->left) {
+            it->currentNode = it->currentNode->left;
+        }
     }
-    
-    if (it->stackSize > 0) {
-        it->state = ZZ_ITER_VALID;
-    }
-    
-    return ZZ_OK();
+
+    it->state = it->currentNode ? ZZ_ITER_VALID : ZZ_ITER_END;
 }
 
-/**
- * @brief Frees resources associated with the TreeSet iterator.
- *
- * This function releases the memory used by the iterator's internal stack.
- * The iterator should not be used after calling this function.
- *
- * @param[in,out] it Pointer to the iterator to free
- */
-void zzTreeSetIteratorFree(zzTreeSetIterator *it) {
-    if (!it) return;
-    
-    if (it->stack) {
-        free(it->stack);
-        it->stack = NULL;
-    }
-    it->stackSize = 0;
-    it->stackCapacity = 0;
-    it->state = ZZ_ITER_END;
-}
 
 /**
  * @brief Advances the iterator to the next key.
@@ -459,19 +428,35 @@ void zzTreeSetIteratorFree(zzTreeSetIterator *it) {
  * @return true if a key was retrieved, false if the iterator reached the end
  */
 bool zzTreeSetIteratorNext(zzTreeSetIterator *it, void *keyOut) {
-    if (!it || !keyOut || it->state != ZZ_ITER_VALID || it->stackSize == 0) return false;
-    
-    TreeSetNode *current = it->stack[--it->stackSize];
+    if (!it || !keyOut || it->state != ZZ_ITER_VALID || !it->currentNode) return false;
+
+    TreeSetNode *current = it->currentNode;
     it->lastReturned = current;
-    
+
     memcpy(keyOut, current->key, it->set->keySize);
-    
-    current = current->right;
-    while (current) {
-        it->stack[it->stackSize++] = current;
-        current = current->left;
+
+    // Find the in-order successor
+    if (current->right) {
+        // If current node has a right child, go to right child, then all the way left
+        current = current->right;
+        while (current->left) {
+            current = current->left;
+        }
+        it->currentNode = current;
+    } else {
+        // If current node has no right child, go up to parent until we come from a left child
+        TreeSetNode *parent = current->parent;
+        while (parent && current == parent->right) {
+            current = parent;
+            parent = parent->parent;
+        }
+        it->currentNode = parent;
     }
-    
+
+    if (!it->currentNode) {
+        it->state = ZZ_ITER_END;
+    }
+
     return true;
 }
 
@@ -485,7 +470,7 @@ bool zzTreeSetIteratorNext(zzTreeSetIterator *it, void *keyOut) {
  * @return true if there are more elements, false otherwise
  */
 bool zzTreeSetIteratorHasNext(const zzTreeSetIterator *it) {
-    return it && it->state == ZZ_ITER_VALID && it->stackSize > 0;
+    return it && it->state == ZZ_ITER_VALID && it->currentNode != NULL;
 }
 
 /**
@@ -493,7 +478,7 @@ bool zzTreeSetIteratorHasNext(const zzTreeSetIterator *it) {
  *
  * This function removes the key that was most recently returned by
  * zzTreeSetIteratorNext. It safely handles the tree restructuring by rebuilding
- * the iterator stack to the correct next element.
+ * the iterator position to the correct next element.
  *
  * @param[in,out] it Pointer to the iterator
  * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
@@ -502,14 +487,15 @@ zzOpResult zzTreeSetIteratorRemove(zzTreeSetIterator *it) {
     if (!it || it->state != ZZ_ITER_VALID) return ZZ_ERR("Invalid iterator state");
     if (!it->lastReturned) return ZZ_ERR("No element to remove");
 
+    // Save the key of the next node if there is one
     void *nextKey = NULL;
-    if (it->stackSize > 0) {
-        TreeSetNode *next = it->stack[it->stackSize - 1];
+    if (it->currentNode) {
         nextKey = malloc(it->set->keySize);
         if (!nextKey) return ZZ_ERR("Memory allocation failed");
-        memcpy(nextKey, next->key, it->set->keySize);
+        memcpy(nextKey, it->currentNode->key, it->set->keySize);
     }
 
+    // Save the key of the node to be removed
     void *removeKey = malloc(it->set->keySize);
     if (!removeKey) {
         if (nextKey) free(nextKey);
@@ -528,31 +514,29 @@ zzOpResult zzTreeSetIteratorRemove(zzTreeSetIterator *it) {
     it->lastReturned = NULL;
 
     if (nextKey) {
-        it->stackSize = 0;
-        
+        // Find the node corresponding to the saved next key
         TreeSetNode *cur = it->set->root;
         while (cur) {
             int cmp = it->set->compareFn(nextKey, cur->key);
             if (cmp == 0) {
-                it->stack[it->stackSize++] = cur;
+                it->currentNode = cur;
                 break;
             } else if (cmp < 0) {
-                it->stack[it->stackSize++] = cur;
                 cur = cur->left;
             } else {
                 cur = cur->right;
             }
         }
-        
-        if (it->stackSize > 0) {
+
+        if (it->currentNode) {
              it->state = ZZ_ITER_VALID;
         } else {
              it->state = ZZ_ITER_END;
         }
-        
+
         free(nextKey);
     } else {
-        it->stackSize = 0;
+        it->currentNode = NULL;
         it->state = ZZ_ITER_END;
     }
 
