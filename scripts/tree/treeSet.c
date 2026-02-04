@@ -2,6 +2,19 @@
 #include <string.h>
 #include <stdlib.h>
 
+/**
+ * @brief Initializes a new TreeSet with the specified key size.
+ *
+ * This function initializes a TreeSet structure with the given key size
+ * and custom functions for comparison and memory management. The tree set will be
+ * empty after initialization.
+ *
+ * @param[out] ts Pointer to the TreeSet structure to initialize
+ * @param[in] keySize Size in bytes of each key that will be stored in the set
+ * @param[in] compareFn Function to compare keys for ordering (returns negative if a<b, 0 if a==b, positive if a>b)
+ * @param[in] keyFree Function to free key memory when entries are removed or the set is freed, or NULL if not needed
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzTreeSetInit(zzTreeSet *ts, size_t keySize, zzCompareFn compareFn, zzFreeFn keyFree) {
     if (!ts) return ZZ_ERR("TreeSet pointer is NULL");
     if (keySize == 0) return ZZ_ERR("Key size cannot be zero");
@@ -23,6 +36,15 @@ static void zzTreeSetFreeNode(zzTreeSet *ts, TreeSetNode *node) {
     free(node);
 }
 
+/**
+ * @brief Frees all resources associated with the TreeSet.
+ *
+ * This function releases all memory used by the TreeSet, including calling
+ * the custom free function for each key if provided. After this function
+ * returns, the TreeSet structure should not be used until reinitialized.
+ *
+ * @param[in,out] ts Pointer to the TreeSet to free
+ */
 void zzTreeSetFree(zzTreeSet *ts) {
     if (!ts) return;
     zzTreeSetFreeNode(ts, ts->root);
@@ -97,6 +119,17 @@ static void tsInsertFixup(zzTreeSet *ts, TreeSetNode *z) {
     ts->root->color = ZZ_BLACK;
 }
 
+/**
+ * @brief Inserts a key into the TreeSet.
+ *
+ * This function inserts a new key into the tree set if it doesn't already exist.
+ * The key is copied into the tree's internal storage. The tree is automatically
+ * rebalanced after the insertion to maintain red-black tree properties.
+ *
+ * @param[in,out] ts Pointer to the TreeSet to insert into
+ * @param[in] key Pointer to the key to insert (contents will be copied)
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzTreeSetInsert(zzTreeSet *ts, const void *key) {
     if (!ts) return ZZ_ERR("TreeSet pointer is NULL");
     if (!key) return ZZ_ERR("Key pointer is NULL");
@@ -128,6 +161,15 @@ zzOpResult zzTreeSetInsert(zzTreeSet *ts, const void *key) {
     return ZZ_OK();
 }
 
+/**
+ * @brief Checks if the TreeSet contains the specified key.
+ *
+ * This function checks whether the given key exists in the tree set.
+ *
+ * @param[in] ts Pointer to the TreeSet to check
+ * @param[in] key Pointer to the key to look for
+ * @return true if the key exists in the set, false otherwise
+ */
 bool zzTreeSetContains(const zzTreeSet *ts, const void *key) {
     if (!ts || !key) return false;
     
@@ -220,6 +262,19 @@ static void tsDeleteFixup(zzTreeSet *ts, TreeSetNode *x, TreeSetNode *xParent) {
     if (x) x->color = ZZ_BLACK;
 }
 
+/**
+ * @brief Removes the specified key from the TreeSet.
+ *
+ * This function removes the given key from the tree set if it exists.
+ * If a custom free function was provided for keys, it will be called
+ * on the removed key. The tree is automatically rebalanced after
+ * the removal to maintain red-black tree properties. The function returns an error
+ * if the key is not present in the set.
+ *
+ * @param[in,out] ts Pointer to the TreeSet to remove from
+ * @param[in] key Pointer to the key to remove
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzTreeSetRemove(zzTreeSet *ts, const void *key) {
     if (!ts) return ZZ_ERR("TreeSet pointer is NULL");
     if (!key) return ZZ_ERR("Key pointer is NULL");
@@ -277,6 +332,15 @@ zzOpResult zzTreeSetRemove(zzTreeSet *ts, const void *key) {
     return ZZ_OK();
 }
 
+/**
+ * @brief Clears all keys from the TreeSet.
+ *
+ * This function removes all keys from the tree set by calling the custom free
+ * function for each key (if provided) and deallocating all nodes. The tree set
+ * becomes empty after this operation.
+ *
+ * @param[in,out] ts Pointer to the TreeSet to clear
+ */
 void zzTreeSetClear(zzTreeSet *ts) {
     if (!ts) return;
     zzTreeSetFreeNode(ts, ts->root);
@@ -284,6 +348,16 @@ void zzTreeSetClear(zzTreeSet *ts) {
     ts->size = 0;
 }
 
+/**
+ * @brief Gets the minimum key from the TreeSet.
+ *
+ * This function retrieves the smallest key in the tree set and copies it to the
+ * output buffer. The minimum element is the leftmost node in the binary search tree.
+ *
+ * @param[in] ts Pointer to the TreeSet to retrieve from
+ * @param[out] keyOut Pointer to a buffer where the minimum key will be copied
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzTreeSetGetMin(const zzTreeSet *ts, void *keyOut) {
     if (!ts) return ZZ_ERR("TreeSet pointer is NULL");
     if (!keyOut) return ZZ_ERR("Key output pointer is NULL");
@@ -294,6 +368,16 @@ zzOpResult zzTreeSetGetMin(const zzTreeSet *ts, void *keyOut) {
     return ZZ_OK();
 }
 
+/**
+ * @brief Gets the maximum key from the TreeSet.
+ *
+ * This function retrieves the largest key in the tree set and copies it to the
+ * output buffer. The maximum element is the rightmost node in the binary search tree.
+ *
+ * @param[in] ts Pointer to the TreeSet to retrieve from
+ * @param[out] keyOut Pointer to a buffer where the maximum key will be copied
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzTreeSetGetMax(const zzTreeSet *ts, void *keyOut) {
     if (!ts) return ZZ_ERR("TreeSet pointer is NULL");
     if (!keyOut) return ZZ_ERR("Key output pointer is NULL");
@@ -303,6 +387,7 @@ zzOpResult zzTreeSetGetMax(const zzTreeSet *ts, void *keyOut) {
     memcpy(keyOut, max->key, ts->keySize);
     return ZZ_OK();
 }
+
 /**
  * @brief Initializes an iterator for the TreeSet.
  *
@@ -314,13 +399,14 @@ zzOpResult zzTreeSetGetMax(const zzTreeSet *ts, void *keyOut) {
  * @param[in] ts Pointer to the TreeSet to iterate over
  * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
  */
-zzOpResult zzTreeSetIteratorInit(zzTreeSetIterator *it, const zzTreeSet *ts) {
+zzOpResult zzTreeSetIteratorInit(zzTreeSetIterator *it, zzTreeSet *ts) {
     if (!it) return ZZ_ERR("Iterator pointer is NULL");
     if (!ts) return ZZ_ERR("TreeSet pointer is NULL");
     
     it->set = ts;
     it->stackSize = 0;
-    it->stackCapacity = ts->size + 1; // +1 to handle edge cases
+    it->lastReturned = NULL;
+    it->stackCapacity = ts->size + 1;
     it->state = ZZ_ITER_END;
     
     if (it->stackCapacity == 0) it->stackCapacity = 1;
@@ -328,7 +414,6 @@ zzOpResult zzTreeSetIteratorInit(zzTreeSetIterator *it, const zzTreeSet *ts) {
     it->stack = malloc(sizeof(TreeSetNode*) * it->stackCapacity);
     if (!it->stack) return ZZ_ERR("Failed to allocate iterator stack");
     
-    // Push all left nodes starting from root
     TreeSetNode *current = ts->root;
     while (current) {
         it->stack[it->stackSize++] = current;
@@ -376,21 +461,15 @@ void zzTreeSetIteratorFree(zzTreeSetIterator *it) {
 bool zzTreeSetIteratorNext(zzTreeSetIterator *it, void *keyOut) {
     if (!it || !keyOut || it->state != ZZ_ITER_VALID || it->stackSize == 0) return false;
     
-    // Pop the top node
     TreeSetNode *current = it->stack[--it->stackSize];
+    it->lastReturned = current;
     
-    // Copy key
     memcpy(keyOut, current->key, it->set->keySize);
     
-    // Push all left nodes of the right subtree
     current = current->right;
     while (current) {
         it->stack[it->stackSize++] = current;
         current = current->left;
-    }
-    
-    if (it->stackSize == 0) {
-        it->state = ZZ_ITER_END;
     }
     
     return true;
@@ -407,4 +486,75 @@ bool zzTreeSetIteratorNext(zzTreeSetIterator *it, void *keyOut) {
  */
 bool zzTreeSetIteratorHasNext(const zzTreeSetIterator *it) {
     return it && it->state == ZZ_ITER_VALID && it->stackSize > 0;
+}
+
+/**
+ * @brief Removes the last key returned by the iterator.
+ *
+ * This function removes the key that was most recently returned by
+ * zzTreeSetIteratorNext. It safely handles the tree restructuring by rebuilding
+ * the iterator stack to the correct next element.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzTreeSetIteratorRemove(zzTreeSetIterator *it) {
+    if (!it || it->state != ZZ_ITER_VALID) return ZZ_ERR("Invalid iterator state");
+    if (!it->lastReturned) return ZZ_ERR("No element to remove");
+
+    void *nextKey = NULL;
+    if (it->stackSize > 0) {
+        TreeSetNode *next = it->stack[it->stackSize - 1];
+        nextKey = malloc(it->set->keySize);
+        if (!nextKey) return ZZ_ERR("Memory allocation failed");
+        memcpy(nextKey, next->key, it->set->keySize);
+    }
+
+    void *removeKey = malloc(it->set->keySize);
+    if (!removeKey) {
+        if (nextKey) free(nextKey);
+        return ZZ_ERR("Memory allocation failed");
+    }
+    memcpy(removeKey, it->lastReturned->key, it->set->keySize);
+
+    zzOpResult res = zzTreeSetRemove(it->set, removeKey);
+    free(removeKey);
+
+    if (ZZ_IS_ERR(res)) {
+        if (nextKey) free(nextKey);
+        return res;
+    }
+
+    it->lastReturned = NULL;
+
+    if (nextKey) {
+        it->stackSize = 0;
+        
+        TreeSetNode *cur = it->set->root;
+        while (cur) {
+            int cmp = it->set->compareFn(nextKey, cur->key);
+            if (cmp == 0) {
+                it->stack[it->stackSize++] = cur;
+                break;
+            } else if (cmp < 0) {
+                it->stack[it->stackSize++] = cur;
+                cur = cur->left;
+            } else {
+                cur = cur->right;
+            }
+        }
+        
+        if (it->stackSize > 0) {
+             it->state = ZZ_ITER_VALID;
+        } else {
+             it->state = ZZ_ITER_END;
+        }
+        
+        free(nextKey);
+    } else {
+        it->stackSize = 0;
+        it->state = ZZ_ITER_END;
+    }
+
+    return ZZ_OK();
 }

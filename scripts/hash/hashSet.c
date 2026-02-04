@@ -369,15 +369,15 @@ zzOpResult zzHashSetDifference(const zzHashSet *s1, const zzHashSet *s2, zzHashS
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] s Pointer to the HashSet to iterate over
  */
-void zzHashSetIteratorInit(zzHashSetIterator *it, const zzHashSet *s) {
+void zzHashSetIteratorInit(zzHashSetIterator *it, zzHashSet *s) {
     if (!it || !s) return;
     
     it->set = s;
     it->bucketIndex = 0;
     it->currentNode = NULL;
+    it->lastReturned = NULL;
     it->state = ZZ_ITER_END;
     
-    // Find first non-empty bucket
     for (size_t i = 0; i < s->capacity; i++) {
         if (s->buckets[i] != NULL) {
             it->bucketIndex = i;
@@ -402,13 +402,12 @@ void zzHashSetIteratorInit(zzHashSetIterator *it, const zzHashSet *s) {
 bool zzHashSetIteratorNext(zzHashSetIterator *it, void *keyOut) {
     if (!it || !keyOut || it->state != ZZ_ITER_VALID || !it->currentNode) return false;
     
-    // Copy current key
     memcpy(keyOut, it->currentNode->key, it->set->keySize);
     
-    // Move to next node
+    it->lastReturned = it->currentNode;
+
     it->currentNode = it->currentNode->next;
     
-    // If no more nodes in current bucket, find next non-empty bucket
     if (!it->currentNode) {
         it->bucketIndex++;
         while (it->bucketIndex < it->set->capacity && !it->set->buckets[it->bucketIndex]) {
@@ -417,8 +416,6 @@ bool zzHashSetIteratorNext(zzHashSetIterator *it, void *keyOut) {
         
         if (it->bucketIndex < it->set->capacity) {
             it->currentNode = it->set->buckets[it->bucketIndex];
-        } else {
-            it->state = ZZ_ITER_END;
         }
     }
     
@@ -436,4 +433,39 @@ bool zzHashSetIteratorNext(zzHashSetIterator *it, void *keyOut) {
  */
 bool zzHashSetIteratorHasNext(const zzHashSetIterator *it) {
     return it && it->state == ZZ_ITER_VALID && it->currentNode != NULL;
+}
+
+/**
+ * @brief Removes the last key returned by the iterator.
+ *
+ * This function removes the key that was most recently returned by
+ * zzHashSetIteratorNext. After removal, the iterator remains valid and
+ * continues to the next element on the next call to Next.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzHashSetIteratorRemove(zzHashSetIterator *it) {
+    if (!it || it->state != ZZ_ITER_VALID) return ZZ_ERR("Invalid iterator state");
+    if (!it->lastReturned) return ZZ_ERR("No element to remove (Next not called or already removed)");
+
+    SetNode *target = it->lastReturned;
+    size_t bucketIdx = target->hash % it->set->capacity;
+    
+    SetNode **cur = &it->set->buckets[bucketIdx];
+    while (*cur) {
+        if (*cur == target) {
+            *cur = target->next; 
+            
+            if (it->set->keyFree) it->set->keyFree(target->key);
+            
+            free(target);
+            it->set->size--;
+            it->lastReturned = NULL; 
+            return ZZ_OK();
+        }
+        cur = &(*cur)->next;
+    }
+    
+    return ZZ_ERR("Element not found (should not happen)");
 }

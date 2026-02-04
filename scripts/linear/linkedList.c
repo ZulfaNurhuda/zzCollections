@@ -314,6 +314,7 @@ void zzLinkedListClear(zzLinkedList *ll) {
     ll->head = ll->tail = NULL;
     ll->size = 0;
 }
+
 /**
  * @brief Initializes an iterator for the LinkedList.
  *
@@ -324,7 +325,7 @@ void zzLinkedListClear(zzLinkedList *ll) {
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] ll Pointer to the LinkedList to iterate over
  */
-void zzLinkedListIteratorInit(zzLinkedListIterator *it, const zzLinkedList *ll) {
+void zzLinkedListIteratorInit(zzLinkedListIterator *it, zzLinkedList *ll) {
     if (!it || !ll) return;
     
     it->list = ll;
@@ -349,9 +350,6 @@ bool zzLinkedListIteratorNext(zzLinkedListIterator *it, void *valueOut) {
     memcpy(valueOut, it->current->data, it->list->elSize);
     
     it->current = it->current->next;
-    if (!it->current) {
-        it->state = ZZ_ITER_END;
-    }
     
     return true;
 }
@@ -367,4 +365,50 @@ bool zzLinkedListIteratorNext(zzLinkedListIterator *it, void *valueOut) {
  */
 bool zzLinkedListIteratorHasNext(const zzLinkedListIterator *it) {
     return it && it->state == ZZ_ITER_VALID && it->current != NULL;
+}
+
+/**
+ * @brief Removes the last element returned by the iterator.
+ *
+ * This function removes the element that was most recently returned by
+ * zzLinkedListIteratorNext. After removal, the iterator remains valid and
+ * continues to the next element on the next call to Next.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzLinkedListIteratorRemove(zzLinkedListIterator *it) {
+    if (!it || !it->list) return ZZ_ERR("Invalid iterator");
+    
+    DLNode *target = NULL;
+    if (it->current) {
+        target = it->current->prev;
+    } else {
+        target = it->list->tail;
+    }
+    
+    if (!target) {
+        return ZZ_ERR("No element to remove (Next not called or at start)");
+    }
+    
+    if (target->prev) {
+        target->prev->next = target->next;
+    } else {
+        it->list->head = target->next;
+    }
+    
+    if (target->next) {
+        target->next->prev = target->prev;
+    } else {
+        it->list->tail = target->prev;
+    }
+    
+    if (it->list->elemFree) {
+        it->list->elemFree(target->data);
+    }
+    
+    free(target);
+    it->list->size--;
+    
+    return ZZ_OK();
 }

@@ -54,9 +54,10 @@ typedef struct zzHashSet {
  * maintaining the current bucket and node position.
  */
 typedef struct zzHashSetIterator {
-    const zzHashSet *set;  /**< Pointer to the HashSet being iterated */
+    zzHashSet *set;        /**< Pointer to the HashSet being iterated */
     size_t bucketIndex;    /**< Current bucket index */
     SetNode *currentNode;  /**< Current node in the bucket chain */
+    SetNode *lastReturned; /**< Pointer to the last returned node */
     zzIteratorState state; /**< Current state of the iterator */
 } zzHashSetIterator;
 
@@ -205,7 +206,7 @@ zzOpResult zzHashSetDifference(const zzHashSet *s1, const zzHashSet *s2, zzHashS
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] s Pointer to the HashSet to iterate over
  */
-void zzHashSetIteratorInit(zzHashSetIterator *it, const zzHashSet *s);
+void zzHashSetIteratorInit(zzHashSetIterator *it, zzHashSet *s);
 
 /**
  * @brief Advances the iterator to the next key.
@@ -230,5 +231,17 @@ bool zzHashSetIteratorNext(zzHashSetIterator *it, void *keyOut);
  * @return true if there are more elements, false otherwise
  */
 bool zzHashSetIteratorHasNext(const zzHashSetIterator *it);
+
+/**
+ * @brief Removes the last key returned by the iterator.
+ *
+ * This function removes the key that was most recently returned by
+ * zzHashSetIteratorNext. After removal, the iterator remains valid and
+ * continues to the next element on the next call to Next.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzHashSetIteratorRemove(zzHashSetIterator *it);
 
 #endif

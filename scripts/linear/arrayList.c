@@ -279,7 +279,7 @@ zzOpResult zzArrayListIndexOf(const zzArrayList *al, const void *elem, zzCompare
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] al Pointer to the ArrayList to iterate over
  */
-void zzArrayListIteratorInit(zzArrayListIterator *it, const zzArrayList *al) {
+void zzArrayListIteratorInit(zzArrayListIterator *it, zzArrayList *al) {
     if (!it || !al) return;
     
     it->list = al;
@@ -310,9 +310,6 @@ bool zzArrayListIteratorNext(zzArrayListIterator *it, void *valueOut) {
     memcpy(valueOut, elem, it->list->elSize);
     
     it->index++;
-    if (it->index >= it->list->size) {
-        it->state = ZZ_ITER_END;
-    }
     
     return true;
 }
@@ -328,4 +325,33 @@ bool zzArrayListIteratorNext(zzArrayListIterator *it, void *valueOut) {
  */
 bool zzArrayListIteratorHasNext(const zzArrayListIterator *it) {
     return it && it->state == ZZ_ITER_VALID && it->index < it->list->size;
+}
+
+/**
+ * @brief Removes the last element returned by the iterator.
+ *
+ * This function removes the element that was most recently returned by
+ * zzArrayListIteratorNext. After removal, the iterator remains valid and
+ * continues to the next element on the next call to Next.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzArrayListIteratorRemove(zzArrayListIterator *it) {
+    if (!it || it->state != ZZ_ITER_VALID) return ZZ_ERR("Invalid iterator state");
+    if (it->index == 0) return ZZ_ERR("No element to remove (Next not called or at start)");
+
+    size_t removeIdx = it->index - 1;
+    zzOpResult result = zzArrayListRemove(it->list, removeIdx);
+    
+    if (ZZ_IS_OK(result)) {
+        it->index--; 
+        if (it->index >= it->list->size && it->list->size == 0) {
+             it->state = ZZ_ITER_END;
+        } else if (it->index >= it->list->size) {
+             it->state = ZZ_ITER_END; 
+        }
+    }
+    
+    return result;
 }

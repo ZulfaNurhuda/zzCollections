@@ -50,7 +50,7 @@ typedef struct zzLinkedList {
  * maintaining the current node and reference to the list.
  */
 typedef struct zzLinkedListIterator {
-    const zzLinkedList *list; /**< Pointer to the LinkedList being iterated */
+    zzLinkedList *list;       /**< Pointer to the LinkedList being iterated */
     DLNode *current;          /**< Pointer to the current node */
     zzIteratorState state;    /**< Current state of the iterator */
 } zzLinkedListIterator;
@@ -134,7 +134,8 @@ zzOpResult zzLinkedListPopBack(zzLinkedList *ll, void *out);
  *
  * This function retrieves the element at the given index in the list and copies
  * it to the output buffer. The index is relative to the logical order of elements
- * in the list, starting from the head.
+ * in the list, starting from the head. The implementation optimizes traversal
+ * by choosing to start from either head or tail depending on which is closer.
  *
  * @param[in] ll Pointer to the LinkedList to retrieve from
  * @param[in] idx Index of the element to retrieve (0-based, from head)
@@ -148,7 +149,8 @@ zzOpResult zzLinkedListGet(const zzLinkedList *ll, size_t idx, void *out);
  *
  * This function inserts the specified element at the given index in the list.
  * The element is copied into a newly allocated node. All elements at and after
- * the specified index will be shifted one position to the right.
+ * the specified index will be shifted one position to the right. Special cases
+ * for inserting at the beginning or end of the list are handled efficiently.
  *
  * @param[in,out] ll Pointer to the LinkedList to insert into
  * @param[in] idx Index at which to insert the element (0-based, from head)
@@ -163,7 +165,8 @@ zzOpResult zzLinkedListInsert(zzLinkedList *ll, size_t idx, const void *elem);
  * This function removes the element at the given index from the list and frees
  * the corresponding node. If a custom free function was provided, it will be
  * called on the removed element. All elements after the specified index will
- * be shifted one position to the left.
+ * be shifted one position to the left. Special cases for removing from the
+ * beginning or end of the list are handled efficiently.
  *
  * @param[in,out] ll Pointer to the LinkedList to remove from
  * @param[in] idx Index of the element to remove (0-based, from head)
@@ -192,7 +195,7 @@ void zzLinkedListClear(zzLinkedList *ll);
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] ll Pointer to the LinkedList to iterate over
  */
-void zzLinkedListIteratorInit(zzLinkedListIterator *it, const zzLinkedList *ll);
+void zzLinkedListIteratorInit(zzLinkedListIterator *it, zzLinkedList *ll);
 
 /**
  * @brief Advances the iterator to the next element.
@@ -217,5 +220,17 @@ bool zzLinkedListIteratorNext(zzLinkedListIterator *it, void *valueOut);
  * @return true if there are more elements, false otherwise
  */
 bool zzLinkedListIteratorHasNext(const zzLinkedListIterator *it);
+
+/**
+ * @brief Removes the last element returned by the iterator.
+ *
+ * This function removes the element that was most recently returned by
+ * zzLinkedListIteratorNext. After removal, the iterator remains valid and
+ * continues to the next element on the next call to Next.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzLinkedListIteratorRemove(zzLinkedListIterator *it);
 
 #endif

@@ -288,7 +288,7 @@ void zzArrayDequeClear(zzArrayDeque *ad) {
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] ad Pointer to the ArrayDeque to iterate over
  */
-void zzArrayDequeIteratorInit(zzArrayDequeIterator *it, const zzArrayDeque *ad) {
+void zzArrayDequeIteratorInit(zzArrayDequeIterator *it, zzArrayDeque *ad) {
     if (!it || !ad) return;
     
     it->deque = ad;
@@ -320,9 +320,6 @@ bool zzArrayDequeIteratorNext(zzArrayDequeIterator *it, void *valueOut) {
     memcpy(valueOut, elem, it->deque->elSize);
     
     it->index++;
-    if (it->index >= it->deque->size) {
-        it->state = ZZ_ITER_END;
-    }
     
     return true;
 }
@@ -338,4 +335,51 @@ bool zzArrayDequeIteratorNext(zzArrayDequeIterator *it, void *valueOut) {
  */
 bool zzArrayDequeIteratorHasNext(const zzArrayDequeIterator *it) {
     return it && it->state == ZZ_ITER_VALID && it->index < it->deque->size;
+}
+
+/**
+ * @brief Removes the last element returned by the iterator.
+ *
+ * This function removes the element that was most recently returned by
+ * zzArrayDequeIteratorNext. After removal, the iterator remains valid and
+ * continues to the next element on the next call to Next.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzArrayDequeIteratorRemove(zzArrayDequeIterator *it) {
+    if (!it || it->state != ZZ_ITER_VALID) return ZZ_ERR("Invalid iterator state");
+    if (it->index == 0) return ZZ_ERR("No element to remove (Next not called or at start)");
+
+    size_t removeIdx = it->index - 1;
+    zzArrayDeque *ad = it->deque;
+    
+    if (removeIdx >= ad->size) return ZZ_ERR("Index out of bounds");
+
+    size_t physicalRemoveIdx = (ad->front + removeIdx) % ad->capacity;
+    void *target = (char*)ad->buffer + physicalRemoveIdx * ad->elSize;
+
+    if (ad->elemFree) {
+        ad->elemFree(target);
+    }
+
+    for (size_t i = removeIdx; i < ad->size - 1; i++) {
+        size_t currIdx = (ad->front + i) % ad->capacity;
+        size_t nextIdx = (ad->front + i + 1) % ad->capacity;
+        
+        void *dst = (char*)ad->buffer + currIdx * ad->elSize;
+        void *src = (char*)ad->buffer + nextIdx * ad->elSize;
+        memcpy(dst, src, ad->elSize);
+    }
+
+    ad->size--;
+    it->index--; 
+
+    if (it->index >= ad->size && ad->size == 0) {
+        it->state = ZZ_ITER_END;
+    } else if (it->index >= ad->size) {
+        it->state = ZZ_ITER_END;
+    }
+    
+    return ZZ_OK();
 }

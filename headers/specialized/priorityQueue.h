@@ -40,7 +40,7 @@ typedef struct zzPriorityQueue {
  * Note: The iteration order is not guaranteed to be in priority order.
  */
 typedef struct zzPriorityQueueIterator {
-    const zzPriorityQueue *queue; /**< Pointer to the PriorityQueue being iterated */
+    zzPriorityQueue *queue;       /**< Pointer to the PriorityQueue being iterated */
     size_t index;                 /**< Current index in the heap array */
     zzIteratorState state;        /**< Current state of the iterator */
 } zzPriorityQueueIterator;
@@ -133,7 +133,7 @@ void zzPriorityQueueClear(zzPriorityQueue *pq);
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] pq Pointer to the PriorityQueue to iterate over
  */
-void zzPriorityQueueIteratorInit(zzPriorityQueueIterator *it, const zzPriorityQueue *pq);
+void zzPriorityQueueIteratorInit(zzPriorityQueueIterator *it, zzPriorityQueue *pq);
 
 /**
  * @brief Advances the iterator to the next element.
@@ -158,5 +158,18 @@ bool zzPriorityQueueIteratorNext(zzPriorityQueueIterator *it, void *valueOut);
  * @return true if there are more elements, false otherwise
  */
 bool zzPriorityQueueIteratorHasNext(const zzPriorityQueueIterator *it);
+
+/**
+ * @brief Removes the last element returned by the iterator.
+ *
+ * This function removes the element that was most recently returned by
+ * zzPriorityQueueIteratorNext. After removal, the iterator remains valid.
+ * Note: Removal may affect the order of remaining elements in the iteration
+ * due to heap restructuring.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzPriorityQueueIteratorRemove(zzPriorityQueueIterator *it);
 
 #endif

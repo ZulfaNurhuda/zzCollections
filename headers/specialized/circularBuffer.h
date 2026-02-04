@@ -41,7 +41,7 @@ typedef struct zzCircularBuffer {
  * the oldest element to the newest element.
  */
 typedef struct zzCircularBufferIterator {
-    const zzCircularBuffer *buffer; /**< Pointer to the CircularBuffer being iterated */
+    zzCircularBuffer *buffer;       /**< Pointer to the CircularBuffer being iterated */
     size_t index;                   /**< Current logical index (0 to size-1) */
     zzIteratorState state;          /**< Current state of the iterator */
 } zzCircularBufferIterator;
@@ -156,7 +156,7 @@ void zzCircularBufferClear(zzCircularBuffer *cb);
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] cb Pointer to the CircularBuffer to iterate over
  */
-void zzCircularBufferIteratorInit(zzCircularBufferIterator *it, const zzCircularBuffer *cb);
+void zzCircularBufferIteratorInit(zzCircularBufferIterator *it, zzCircularBuffer *cb);
 
 /**
  * @brief Advances the iterator to the next element.
@@ -181,5 +181,17 @@ bool zzCircularBufferIteratorNext(zzCircularBufferIterator *it, void *valueOut);
  * @return true if there are more elements, false otherwise
  */
 bool zzCircularBufferIteratorHasNext(const zzCircularBufferIterator *it);
+
+/**
+ * @brief Removes the last element returned by the iterator.
+ *
+ * This function removes the element that was most recently returned by
+ * zzCircularBufferIteratorNext. After removal, the iterator remains valid and
+ * continues to the next element on the next call to Next.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzCircularBufferIteratorRemove(zzCircularBufferIterator *it);
 
 #endif

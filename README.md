@@ -36,6 +36,9 @@ Welcome to **zzCollections**! This comprehensive library brings you **15 product
 - **Universal Iterator Support** 🔄
   Every collection comes with its own iterator for seamless traversal! Iterator functions return `bool` for simple while loops, with consistent API across all 15 data structures.
 
+- **Safe Iterator Modification** ✂️
+  Safely remove elements during iteration using the dedicated `Remove` function for any collection iterator!
+
 - **Production-Ready Algorithms** 🏆
   Implements industry-standard algorithms: Red-Black trees for balanced operations, Min-heap for priority queues, Circular buffers with automatic overwrite, and efficient Hash tables with collision handling.
 
@@ -53,10 +56,11 @@ Welcome to **zzCollections**! This comprehensive library brings you **15 product
 
 ---
 
-### <div id="data-structures">**📚・Data Structures (15 Total)**</div>
+### <div id="data-structures">**📚・Data Structures (16 Total)**</div>
 
-#### **Linear Collections (3)**
+#### **Linear Collections (4)**
 - **zzArrayList** - Dynamic array with O(1) random access and automatic resizing
+- **zzArraySet** - Flat set (dynamic array) with O(n) unique check, best for small datasets
 - **zzArrayDeque** - Circular buffer deque with O(1) operations at both ends
 - **zzLinkedList** - Doubly linked list with O(1) front/back insertions and deletions
 

@@ -61,8 +61,9 @@ typedef struct zzLinkedHashMap {
  * following the linked list of nodes.
  */
 typedef struct zzLinkedHashMapIterator {
-    const zzLinkedHashMap *map; /**< Pointer to the LinkedHashMap being iterated */
+    zzLinkedHashMap *map;       /**< Pointer to the LinkedHashMap being iterated */
     LHMapNode *current;         /**< Pointer to the current node */
+    LHMapNode *lastReturned;    /**< Pointer to the last returned node */
     zzIteratorState state;      /**< Current state of the iterator */
 } zzLinkedHashMapIterator;
 
@@ -201,7 +202,7 @@ zzOpResult zzLinkedHashMapGetLast(const zzLinkedHashMap *lhm, void *keyOut, void
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] lhm Pointer to the LinkedHashMap to iterate over
  */
-void zzLinkedHashMapIteratorInit(zzLinkedHashMapIterator *it, const zzLinkedHashMap *lhm);
+void zzLinkedHashMapIteratorInit(zzLinkedHashMapIterator *it, zzLinkedHashMap *lhm);
 
 /**
  * @brief Advances the iterator to the next key-value pair.
@@ -227,5 +228,17 @@ bool zzLinkedHashMapIteratorNext(zzLinkedHashMapIterator *it, void *keyOut, void
  * @return true if there are more elements, false otherwise
  */
 bool zzLinkedHashMapIteratorHasNext(const zzLinkedHashMapIterator *it);
+
+/**
+ * @brief Removes the last key-value pair returned by the iterator.
+ *
+ * This function removes the key-value pair that was most recently returned by
+ * zzLinkedHashMapIteratorNext. After removal, the iterator remains valid and
+ * continues to the next element on the next call to Next.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzLinkedHashMapIteratorRemove(zzLinkedHashMapIterator *it);
 
 #endif

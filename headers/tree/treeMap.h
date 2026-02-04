@@ -55,8 +55,9 @@ typedef struct zzTreeMap {
  * maintaining a stack of nodes to traverse the tree in sorted order.
  */
 typedef struct zzTreeMapIterator {
-    const zzTreeMap *map;           /**< Pointer to the TreeMap being iterated */
+    zzTreeMap *map;                 /**< Pointer to the TreeMap being iterated */
     TreeMapNode **stack;            /**< Stack of nodes for in-order traversal */
+    TreeMapNode *lastReturned;      /**< Pointer to the last returned node */
     size_t stackSize;               /**< Current size of the stack */
     size_t stackCapacity;           /**< Maximum capacity of the stack */
     zzIteratorState state;          /**< Current state of the iterator */
@@ -195,7 +196,7 @@ zzOpResult zzTreeMapGetMax(const zzTreeMap *tm, void *keyOut, void *valueOut);
  * @param[in] tm Pointer to the TreeMap to iterate over
  * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
  */
-zzOpResult zzTreeMapIteratorInit(zzTreeMapIterator *it, const zzTreeMap *tm);
+zzOpResult zzTreeMapIteratorInit(zzTreeMapIterator *it, zzTreeMap *tm);
 
 /**
  * @brief Frees resources associated with the TreeMap iterator.
@@ -231,5 +232,17 @@ bool zzTreeMapIteratorNext(zzTreeMapIterator *it, void *keyOut, void *valueOut);
  * @return true if there are more elements, false otherwise
  */
 bool zzTreeMapIteratorHasNext(const zzTreeMapIterator *it);
+
+/**
+ * @brief Removes the last key-value pair returned by the iterator.
+ *
+ * This function removes the key-value pair that was most recently returned by
+ * zzTreeMapIteratorNext. It safely handles the tree restructuring by rebuilding
+ * the iterator stack to the correct next element.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzTreeMapIteratorRemove(zzTreeMapIterator *it);
 
 #endif

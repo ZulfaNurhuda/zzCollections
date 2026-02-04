@@ -59,8 +59,9 @@ typedef struct zzLinkedHashSet {
  * following the linked list of nodes.
  */
 typedef struct zzLinkedHashSetIterator {
-    const zzLinkedHashSet *set; /**< Pointer to the LinkedHashSet being iterated */
+    zzLinkedHashSet *set;       /**< Pointer to the LinkedHashSet being iterated */
     LHSetNode *current;         /**< Pointer to the current node */
+    LHSetNode *lastReturned;    /**< Pointer to the last returned node */
     zzIteratorState state;      /**< Current state of the iterator */
 } zzLinkedHashSetIterator;
 
@@ -178,7 +179,7 @@ zzOpResult zzLinkedHashSetGetLast(const zzLinkedHashSet *lhs, void *keyOut);
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] lhs Pointer to the LinkedHashSet to iterate over
  */
-void zzLinkedHashSetIteratorInit(zzLinkedHashSetIterator *it, const zzLinkedHashSet *lhs);
+void zzLinkedHashSetIteratorInit(zzLinkedHashSetIterator *it, zzLinkedHashSet *lhs);
 
 /**
  * @brief Advances the iterator to the next key.
@@ -203,5 +204,17 @@ bool zzLinkedHashSetIteratorNext(zzLinkedHashSetIterator *it, void *keyOut);
  * @return true if there are more elements, false otherwise
  */
 bool zzLinkedHashSetIteratorHasNext(const zzLinkedHashSetIterator *it);
+
+/**
+ * @brief Removes the last key returned by the iterator.
+ *
+ * This function removes the key that was most recently returned by
+ * zzLinkedHashSetIteratorNext. After removal, the iterator remains valid and
+ * continues to the next element on the next call to Next.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzLinkedHashSetIteratorRemove(zzLinkedHashSetIterator *it);
 
 #endif

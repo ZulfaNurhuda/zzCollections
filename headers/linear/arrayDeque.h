@@ -38,7 +38,7 @@ typedef struct zzArrayDeque {
  * maintaining the current position and reference to the deque.
  */
 typedef struct zzArrayDequeIterator {
-    const zzArrayDeque *deque; /**< Pointer to the ArrayDeque being iterated */
+    zzArrayDeque *deque;       /**< Pointer to the ArrayDeque being iterated */
     size_t index;              /**< Current logical index in the deque */
     zzIteratorState state;     /**< Current state of the iterator */
 } zzArrayDequeIterator;
@@ -180,7 +180,7 @@ void zzArrayDequeClear(zzArrayDeque *ad);
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] ad Pointer to the ArrayDeque to iterate over
  */
-void zzArrayDequeIteratorInit(zzArrayDequeIterator *it, const zzArrayDeque *ad);
+void zzArrayDequeIteratorInit(zzArrayDequeIterator *it, zzArrayDeque *ad);
 
 /**
  * @brief Advances the iterator to the next element.
@@ -205,5 +205,17 @@ bool zzArrayDequeIteratorNext(zzArrayDequeIterator *it, void *valueOut);
  * @return true if there are more elements, false otherwise
  */
 bool zzArrayDequeIteratorHasNext(const zzArrayDequeIterator *it);
+
+/**
+ * @brief Removes the last element returned by the iterator.
+ *
+ * This function removes the element that was most recently returned by
+ * zzArrayDequeIteratorNext. After removal, the iterator remains valid and
+ * continues to the next element on the next call to Next.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzArrayDequeIteratorRemove(zzArrayDequeIterator *it);
 
 #endif

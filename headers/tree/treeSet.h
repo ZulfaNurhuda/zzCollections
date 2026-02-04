@@ -53,8 +53,9 @@ typedef struct zzTreeSet {
  * maintaining a stack of nodes to traverse the tree in sorted order.
  */
 typedef struct zzTreeSetIterator {
-    const zzTreeSet *set;           /**< Pointer to the TreeSet being iterated */
+    zzTreeSet *set;                 /**< Pointer to the TreeSet being iterated */
     TreeSetNode **stack;            /**< Stack of nodes for in-order traversal */
+    TreeSetNode *lastReturned;      /**< Pointer to the last returned node */
     size_t stackSize;               /**< Current size of the stack */
     size_t stackCapacity;           /**< Maximum capacity of the stack */
     zzIteratorState state;          /**< Current state of the iterator */
@@ -171,7 +172,7 @@ zzOpResult zzTreeSetGetMax(const zzTreeSet *ts, void *keyOut);
  * @param[in] ts Pointer to the TreeSet to iterate over
  * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
  */
-zzOpResult zzTreeSetIteratorInit(zzTreeSetIterator *it, const zzTreeSet *ts);
+zzOpResult zzTreeSetIteratorInit(zzTreeSetIterator *it, zzTreeSet *ts);
 
 /**
  * @brief Frees resources associated with the TreeSet iterator.
@@ -206,5 +207,17 @@ bool zzTreeSetIteratorNext(zzTreeSetIterator *it, void *keyOut);
  * @return true if there are more elements, false otherwise
  */
 bool zzTreeSetIteratorHasNext(const zzTreeSetIterator *it);
+
+/**
+ * @brief Removes the last key returned by the iterator.
+ *
+ * This function removes the key that was most recently returned by
+ * zzTreeSetIteratorNext. It safely handles the tree restructuring by rebuilding
+ * the iterator stack to the correct next element.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzTreeSetIteratorRemove(zzTreeSetIterator *it);
 
 #endif

@@ -89,16 +89,6 @@ void zzHashMapFree(zzHashMap *hm) {
     hm->size = 0;
 }
 
-/**
- * @brief Internal function to rehash the HashMap when load factor threshold is exceeded.
- *
- * This helper function doubles the capacity of the hash map and redistributes
- * all existing entries to their new positions based on the new hash table size.
- * This maintains the efficiency of the hash map by keeping the load factor low.
- *
- * @param[in,out] hm Pointer to the HashMap to rehash
- * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
- */
 static zzOpResult zzHashMapRehash(zzHashMap *hm) {
     size_t newCap = hm->capacity << 1;
     MapNode **newBuckets = calloc(newCap, sizeof(MapNode*));
@@ -295,15 +285,15 @@ void zzHashMapClear(zzHashMap *hm) {
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] hm Pointer to the HashMap to iterate over
  */
-void zzHashMapIteratorInit(zzHashMapIterator *it, const zzHashMap *hm) {
+void zzHashMapIteratorInit(zzHashMapIterator *it, zzHashMap *hm) {
     if (!it || !hm) return;
     
     it->map = hm;
     it->bucketIndex = 0;
     it->currentNode = NULL;
+    it->lastReturned = NULL;
     it->state = ZZ_ITER_END;
     
-    // Find first non-empty bucket
     for (size_t i = 0; i < hm->capacity; i++) {
         if (hm->buckets[i] != NULL) {
             it->bucketIndex = i;
@@ -329,14 +319,13 @@ void zzHashMapIteratorInit(zzHashMapIterator *it, const zzHashMap *hm) {
 bool zzHashMapIteratorNext(zzHashMapIterator *it, void *keyOut, void *valueOut) {
     if (!it || !keyOut || !valueOut || it->state != ZZ_ITER_VALID || !it->currentNode) return false;
     
-    // Copy current key and value
     memcpy(keyOut, it->currentNode->data, it->map->keySize);
     memcpy(valueOut, (char*)it->currentNode->data + it->map->keySize, it->map->valueSize);
     
-    // Move to next node
+    it->lastReturned = it->currentNode;
+
     it->currentNode = it->currentNode->next;
     
-    // If no more nodes in current bucket, find next non-empty bucket
     if (!it->currentNode) {
         it->bucketIndex++;
         while (it->bucketIndex < it->map->capacity && !it->map->buckets[it->bucketIndex]) {
@@ -345,8 +334,6 @@ bool zzHashMapIteratorNext(zzHashMapIterator *it, void *keyOut, void *valueOut) 
         
         if (it->bucketIndex < it->map->capacity) {
             it->currentNode = it->map->buckets[it->bucketIndex];
-        } else {
-            it->state = ZZ_ITER_END;
         }
     }
     
@@ -364,4 +351,40 @@ bool zzHashMapIteratorNext(zzHashMapIterator *it, void *keyOut, void *valueOut) 
  */
 bool zzHashMapIteratorHasNext(const zzHashMapIterator *it) {
     return it && it->state == ZZ_ITER_VALID && it->currentNode != NULL;
+}
+
+/**
+ * @brief Removes the last key-value pair returned by the iterator.
+ *
+ * This function removes the key-value pair that was most recently returned by
+ * zzHashMapIteratorNext. After removal, the iterator remains valid and
+ * continues to the next element on the next call to Next.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzHashMapIteratorRemove(zzHashMapIterator *it) {
+    if (!it || it->state != ZZ_ITER_VALID) return ZZ_ERR("Invalid iterator state");
+    if (!it->lastReturned) return ZZ_ERR("No element to remove (Next not called or already removed)");
+
+    MapNode *target = it->lastReturned;
+    size_t bucketIdx = target->hash & (it->map->capacity - 1);
+    
+    MapNode **cur = &it->map->buckets[bucketIdx];
+    while (*cur) {
+        if (*cur == target) {
+            *cur = target->next;
+            
+            if (it->map->keyFree) it->map->keyFree(target->data);
+            if (it->map->valueFree) it->map->valueFree(target->data + it->map->keySize);
+            
+            free(target);
+            it->map->size--;
+            it->lastReturned = NULL;
+            return ZZ_OK();
+        }
+        cur = &(*cur)->next;
+    }
+    
+    return ZZ_ERR("Element not found (should not happen)");
 }

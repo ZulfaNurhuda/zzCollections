@@ -2,6 +2,24 @@
 #include <string.h>
 #include <stdlib.h>
 
+/**
+ * @brief Initializes a new LinkedHashMap with the specified key and value sizes.
+ *
+ * This function initializes a LinkedHashMap structure with the given key and value sizes,
+ * initial capacity, and custom functions for hashing, equality checking, and memory
+ * management. The linked hash map will be empty after initialization and will maintain
+ * insertion order of entries.
+ *
+ * @param[out] lhm Pointer to the LinkedHashMap structure to initialize
+ * @param[in] keySize Size in bytes of each key that will be stored in the map
+ * @param[in] valueSize Size in bytes of each value that will be stored in the map
+ * @param[in] capacity Initial capacity of the linked hash map (will be adjusted to at least 16 and rounded up to power of 2)
+ * @param[in] hashFn Function to compute hash values for keys, or NULL to use default
+ * @param[in] equalsFn Function to compare keys for equality, or NULL to use default
+ * @param[in] keyFree Function to free key memory when entries are removed or the map is freed, or NULL if not needed
+ * @param[in] valueFree Function to free value memory when entries are removed or the map is freed, or NULL if not needed
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzLinkedHashMapInit(zzLinkedHashMap *lhm, size_t keySize, size_t valueSize, size_t capacity, zzHashFn hashFn, zzEqualsFn equalsFn, zzFreeFn keyFree, zzFreeFn valueFree) {
     if (!lhm) return ZZ_ERR("LinkedHashMap pointer is NULL");
     if (keySize == 0) return ZZ_ERR("Key size cannot be zero");
@@ -25,6 +43,15 @@ zzOpResult zzLinkedHashMapInit(zzLinkedHashMap *lhm, size_t keySize, size_t valu
     return ZZ_OK();
 }
 
+/**
+ * @brief Frees all resources associated with the LinkedHashMap.
+ *
+ * This function releases all memory used by the LinkedHashMap, including calling
+ * the custom free functions for each key and value if provided. After this
+ * function returns, the LinkedHashMap structure should not be used until reinitialized.
+ *
+ * @param[in,out] lhm Pointer to the LinkedHashMap to free
+ */
 void zzLinkedHashMapFree(zzLinkedHashMap *lhm) {
     if (!lhm || !lhm->buckets) return;
 
@@ -61,6 +88,20 @@ static zzOpResult zzLinkedHashMapRehash(zzLinkedHashMap *lhm) {
     return ZZ_OK();
 }
 
+/**
+ * @brief Inserts or updates a key-value pair in the LinkedHashMap.
+ *
+ * This function inserts a new key-value pair into the linked hash map, or updates the
+ * value if the key already exists. Both the key and value are copied into
+ * the map's internal storage. If the load factor threshold is exceeded after
+ * the insertion, the linked hash map will be automatically resized. The insertion
+ * order is maintained.
+ *
+ * @param[in,out] lhm Pointer to the LinkedHashMap to insert/update in
+ * @param[in] key Pointer to the key to insert/update (contents will be copied)
+ * @param[in] value Pointer to the value to insert/update (contents will be copied)
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzLinkedHashMapPut(zzLinkedHashMap *lhm, const void *key, const void *value) {
     if (!lhm) return ZZ_ERR("LinkedHashMap pointer is NULL");
     if (!key) return ZZ_ERR("Key pointer is NULL");
@@ -105,6 +146,18 @@ zzOpResult zzLinkedHashMapPut(zzLinkedHashMap *lhm, const void *key, const void 
     return ZZ_OK();
 }
 
+/**
+ * @brief Retrieves the value associated with the given key from the LinkedHashMap.
+ *
+ * This function looks up the specified key in the linked hash map and copies the
+ * associated value to the output buffer if found. The function returns an error
+ * if the key is not present in the map.
+ *
+ * @param[in] lhm Pointer to the LinkedHashMap to retrieve from
+ * @param[in] key Pointer to the key to look up
+ * @param[out] valueOut Pointer to a buffer where the value will be copied if the key is found
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzLinkedHashMapGet(const zzLinkedHashMap *lhm, const void *key, void *valueOut) {
     if (!lhm) return ZZ_ERR("LinkedHashMap pointer is NULL");
     if (!key) return ZZ_ERR("Key pointer is NULL");
@@ -124,6 +177,15 @@ zzOpResult zzLinkedHashMapGet(const zzLinkedHashMap *lhm, const void *key, void 
     return ZZ_ERR("Key not found");
 }
 
+/**
+ * @brief Checks if the LinkedHashMap contains the specified key.
+ *
+ * This function checks whether the given key exists in the linked hash map.
+ *
+ * @param[in] lhm Pointer to the LinkedHashMap to check
+ * @param[in] key Pointer to the key to look for
+ * @return true if the key exists in the map, false otherwise
+ */
 bool zzLinkedHashMapContains(const zzLinkedHashMap *lhm, const void *key) {
     if (!lhm || !key) return false;
 
@@ -139,6 +201,18 @@ bool zzLinkedHashMapContains(const zzLinkedHashMap *lhm, const void *key) {
     return false;
 }
 
+/**
+ * @brief Removes the key-value pair associated with the given key from the LinkedHashMap.
+ *
+ * This function removes the entry with the specified key from the linked hash map.
+ * If a custom free function was provided for keys or values, it will be called
+ * on the removed key and value. The function returns an error if the key is not
+ * present in the map. The insertion order is maintained after removal.
+ *
+ * @param[in,out] lhm Pointer to the LinkedHashMap to remove from
+ * @param[in] key Pointer to the key to remove
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzLinkedHashMapRemove(zzLinkedHashMap *lhm, const void *key) {
     if (!lhm) return ZZ_ERR("LinkedHashMap pointer is NULL");
     if (!key) return ZZ_ERR("Key pointer is NULL");
@@ -169,6 +243,16 @@ zzOpResult zzLinkedHashMapRemove(zzLinkedHashMap *lhm, const void *key) {
     return ZZ_ERR("Key not found");
 }
 
+/**
+ * @brief Clears all entries from the LinkedHashMap.
+ *
+ * This function removes all key-value pairs from the linked hash map by calling the
+ * custom free functions for each key and value (if provided) and deallocating
+ * all nodes. The linked hash map becomes empty after this operation while maintaining
+ * its structure.
+ *
+ * @param[in,out] lhm Pointer to the LinkedHashMap to clear
+ */
 void zzLinkedHashMapClear(zzLinkedHashMap *lhm) {
     if (!lhm) return;
 
@@ -189,6 +273,18 @@ void zzLinkedHashMapClear(zzLinkedHashMap *lhm) {
     lhm->size = 0;
 }
 
+/**
+ * @brief Gets the first key-value pair in insertion order from the LinkedHashMap.
+ *
+ * This function retrieves the first key-value pair that was inserted into the linked hash map
+ * and copies both the key and value to the output buffers. The first entry corresponds
+ * to the head of the insertion order list.
+ *
+ * @param[in] lhm Pointer to the LinkedHashMap to retrieve from
+ * @param[out] keyOut Pointer to a buffer where the key will be copied
+ * @param[out] valueOut Pointer to a buffer where the value will be copied
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzLinkedHashMapGetFirst(const zzLinkedHashMap *lhm, void *keyOut, void *valueOut) {
     if (!lhm) return ZZ_ERR("LinkedHashMap pointer is NULL");
     if (!lhm->head) return ZZ_ERR("Map is empty");
@@ -198,6 +294,18 @@ zzOpResult zzLinkedHashMapGetFirst(const zzLinkedHashMap *lhm, void *keyOut, voi
     return ZZ_OK();
 }
 
+/**
+ * @brief Gets the last key-value pair in insertion order from the LinkedHashMap.
+ *
+ * This function retrieves the last key-value pair that was inserted into the linked hash map
+ * and copies both the key and value to the output buffers. The last entry corresponds
+ * to the tail of the insertion order list.
+ *
+ * @param[in] lhm Pointer to the LinkedHashMap to retrieve from
+ * @param[out] keyOut Pointer to a buffer where the key will be copied
+ * @param[out] valueOut Pointer to a buffer where the value will be copied
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
 zzOpResult zzLinkedHashMapGetLast(const zzLinkedHashMap *lhm, void *keyOut, void *valueOut) {
     if (!lhm) return ZZ_ERR("LinkedHashMap pointer is NULL");
     if (!lhm->tail) return ZZ_ERR("Map is empty");
@@ -206,6 +314,7 @@ zzOpResult zzLinkedHashMapGetLast(const zzLinkedHashMap *lhm, void *keyOut, void
     if (valueOut) memcpy(valueOut, lhm->tail->data + lhm->keySize, lhm->valueSize);
     return ZZ_OK();
 }
+
 /**
  * @brief Initializes an iterator for the LinkedHashMap.
  *
@@ -215,11 +324,12 @@ zzOpResult zzLinkedHashMapGetLast(const zzLinkedHashMap *lhm, void *keyOut, void
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] lhm Pointer to the LinkedHashMap to iterate over
  */
-void zzLinkedHashMapIteratorInit(zzLinkedHashMapIterator *it, const zzLinkedHashMap *lhm) {
+void zzLinkedHashMapIteratorInit(zzLinkedHashMapIterator *it, zzLinkedHashMap *lhm) {
     if (!it || !lhm) return;
     
     it->map = lhm;
     it->current = lhm->head;
+    it->lastReturned = NULL;
     it->state = (lhm->head != NULL) ? ZZ_ITER_VALID : ZZ_ITER_END;
 }
 
@@ -238,15 +348,12 @@ void zzLinkedHashMapIteratorInit(zzLinkedHashMapIterator *it, const zzLinkedHash
 bool zzLinkedHashMapIteratorNext(zzLinkedHashMapIterator *it, void *keyOut, void *valueOut) {
     if (!it || !keyOut || !valueOut || it->state != ZZ_ITER_VALID || !it->current) return false;
     
-    // Copy current key and value
     memcpy(keyOut, it->current->data, it->map->keySize);
     memcpy(valueOut, (char*)it->current->data + it->map->keySize, it->map->valueSize);
     
-    // Move to next node in insertion order
+    it->lastReturned = it->current;
+
     it->current = it->current->next;
-    if (!it->current) {
-        it->state = ZZ_ITER_END;
-    }
     
     return true;
 }
@@ -262,4 +369,47 @@ bool zzLinkedHashMapIteratorNext(zzLinkedHashMapIterator *it, void *keyOut, void
  */
 bool zzLinkedHashMapIteratorHasNext(const zzLinkedHashMapIterator *it) {
     return it && it->state == ZZ_ITER_VALID && it->current != NULL;
+}
+
+/**
+ * @brief Removes the last key-value pair returned by the iterator.
+ *
+ * This function removes the key-value pair that was most recently returned by
+ * zzLinkedHashMapIteratorNext. After removal, the iterator remains valid and
+ * continues to the next element on the next call to Next.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzLinkedHashMapIteratorRemove(zzLinkedHashMapIterator *it) {
+    if (!it || it->state != ZZ_ITER_VALID) return ZZ_ERR("Invalid iterator state");
+    if (!it->lastReturned) return ZZ_ERR("No element to remove");
+
+    LHMapNode *target = it->lastReturned;
+    zzLinkedHashMap *lhm = it->map;
+
+    if (target->prev) target->prev->next = target->next;
+    else lhm->head = target->next;
+
+    if (target->next) target->next->prev = target->prev;
+    else lhm->tail = target->prev;
+
+    size_t bucketIdx = target->hash % lhm->capacity;
+    LHMapNode **cur = &lhm->buckets[bucketIdx];
+    while (*cur) {
+        if (*cur == target) {
+            *cur = target->hashNext;
+            break;
+        }
+        cur = &(*cur)->hashNext;
+    }
+
+    if (lhm->keyFree) lhm->keyFree(target->data);
+    if (lhm->valueFree) lhm->valueFree(target->data + lhm->keySize);
+    
+    free(target);
+    lhm->size--;
+    it->lastReturned = NULL;
+    
+    return ZZ_OK();
 }

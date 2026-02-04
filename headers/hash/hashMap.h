@@ -56,9 +56,10 @@ typedef struct zzHashMap {
  * maintaining the current bucket and node position.
  */
 typedef struct zzHashMapIterator {
-    const zzHashMap *map;  /**< Pointer to the HashMap being iterated */
+    zzHashMap *map;        /**< Pointer to the HashMap being iterated */
     size_t bucketIndex;    /**< Current bucket index */
     MapNode *currentNode;  /**< Current node in the bucket chain */
+    MapNode *lastReturned; /**< Pointer to the last returned node */
     zzIteratorState state; /**< Current state of the iterator */
 } zzHashMapIterator;
 
@@ -167,7 +168,7 @@ void zzHashMapClear(zzHashMap *hm);
  * @param[out] it Pointer to the iterator structure to initialize
  * @param[in] hm Pointer to the HashMap to iterate over
  */
-void zzHashMapIteratorInit(zzHashMapIterator *it, const zzHashMap *hm);
+void zzHashMapIteratorInit(zzHashMapIterator *it, zzHashMap *hm);
 
 /**
  * @brief Advances the iterator to the next key-value pair.
@@ -193,5 +194,17 @@ bool zzHashMapIteratorNext(zzHashMapIterator *it, void *keyOut, void *valueOut);
  * @return true if there are more elements, false otherwise
  */
 bool zzHashMapIteratorHasNext(const zzHashMapIterator *it);
+
+/**
+ * @brief Removes the last key-value pair returned by the iterator.
+ *
+ * This function removes the key-value pair that was most recently returned by
+ * zzHashMapIteratorNext. After removal, the iterator remains valid and
+ * continues to the next element on the next call to Next.
+ *
+ * @param[in,out] it Pointer to the iterator
+ * @return zzOpResult with status ZZ_SUCCESS on success, or ZZ_ERROR with error message on failure
+ */
+zzOpResult zzHashMapIteratorRemove(zzHashMapIterator *it);
 
 #endif
